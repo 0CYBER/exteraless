@@ -3792,7 +3792,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             }
                         }
 
-                        int countOldWidth = Math.max(dp(BADGE_TEXT_MIN_WIDTH), (int) Math.ceil(Theme.dialogs_countTextPaint2.measureText(oldStr)));
+                        int countOldWidth = Math.max(dp(BADGE_TEXT_MIN_WIDTH), (int) Math.ceil(Math.max(Theme.dialogs_countTextPaint2.measureText(oldStr), Theme.dialogs_countTextPaint2.measureText(newStr))));
                         countOldLayout = new StaticLayout(oldSpannableStr, Theme.dialogs_countTextPaint2, countOldWidth, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
                         countAnimationStableLayout = new StaticLayout(stableStr, Theme.dialogs_countTextPaint2, countOldWidth, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
                         countAnimationInLayout = new StaticLayout(newSpannableStr, Theme.dialogs_countTextPaint2, countOldWidth, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
