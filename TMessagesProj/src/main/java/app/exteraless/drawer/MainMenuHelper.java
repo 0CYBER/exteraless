@@ -43,6 +43,7 @@ import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.SettingsActivity;
 import app.exteraless.plugins.ui.PluginsActivity;
+import app.exteraless.settings.OpenExteraSettingsActivity;
 
 import org.telegram.ui.WebAppDisclaimerAlert;
 import org.telegram.ui.bots.BotWebViewSheet;
@@ -322,6 +323,9 @@ public final class MainMenuHelper {
             case RECENT_CHATS:
                 return new MenuItemInfo(R.drawable.menu_recent, LocaleController.getString(R.string.RecentChats),
                         () -> showRecentChats(fragment, currentAccount), null);
+            case EXTERALESS_SETTINGS:
+                return new MenuItemInfo(R.drawable.exteraless_icon_tile, LocaleController.getString(R.string.OpenExteraPreferences),
+                        () -> fragment.presentFragment(new OpenExteraSettingsActivity()), null);
             default:
                 return null;
         }
@@ -444,6 +448,7 @@ public final class MainMenuHelper {
             case QR -> new MenuItemInfo(R.drawable.msg_qrcode, LocaleController.getString(R.string.AuthAnotherClient), null, null);
             case GHOST_MODE -> new MenuItemInfo(R.drawable.ayu_ghost, ghostModeTitle(), null, null);
             case RECENT_CHATS -> new MenuItemInfo(R.drawable.menu_recent, LocaleController.getString(R.string.RecentChats), null, null);
+            case EXTERALESS_SETTINGS -> new MenuItemInfo(R.drawable.exteraless_icon_tile, LocaleController.getString(R.string.OpenExteraPreferences), null, null);
             default -> null;
         };
     }
