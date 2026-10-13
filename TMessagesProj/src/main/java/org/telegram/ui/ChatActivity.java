@@ -1904,6 +1904,14 @@ public class ChatActivity extends BaseFragment implements
             }
             if((scrimPopupWindow != null && NaConfig.INSTANCE.getDoubleTapAction().Int() == DoubleTap.DOUBLE_TAP_ACTION_SHOW_REACTIONS))
                 return false;
+            if (view instanceof ChatMessageUnsupportedCell) {
+                final MessageObject messageObject = ((ChatMessageUnsupportedCell) view).getMessageObject();
+                if (messageObject == null) {
+                    return false;
+                }
+                presentFragment(new MessageDetailsActivity(messageObject, null));
+                return true;
+            }
             wasManualScroll = true;
             boolean result = true;
             boolean showMenu = true;
@@ -40662,6 +40670,9 @@ public class ChatActivity extends BaseFragment implements
                 MessageObject message = messages.get(position - messagesStartRow);
                 View view = holder.itemView;
 
+                if (view instanceof ChatMessageUnsupportedCell) {
+                    ((ChatMessageUnsupportedCell) view).setMessageObject(message);
+                }
                 if (view instanceof ChatMessageCell) {
                     final ChatMessageCell messageCell = (ChatMessageCell) view;
                     MessageObject.GroupedMessages groupedMessages = getValidGroupedMessage(message);
