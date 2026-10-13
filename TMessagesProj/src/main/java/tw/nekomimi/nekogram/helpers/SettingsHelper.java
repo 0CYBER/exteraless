@@ -22,6 +22,10 @@ import java.util.Map;
 import java.util.Set;
 
 import app.exteraless.ai.ui.AiSettingsActivity;
+import app.exteraless.icons.IconPacksActivity;
+import app.exteraless.pillstack.pills.weather.WeatherSettingsActivity;
+import app.exteraless.settings.OpenExteraCloudActivity;
+import app.exteraless.settings.OpenExteraGlyphActivity;
 import app.exteraless.pillstack.PillStackSettingsActivity;
 import app.exteraless.plugins.ui.PluginsActivity;
 import app.exteraless.settings.OpenExteraAppNavigationActivity;
@@ -321,6 +325,21 @@ public class SettingsHelper {
                     break;
                 case "pillstack":
                     fragment = neko_fragment = new PillStackSettingsActivity();
+                    break;
+                case "pillstackweather":
+                    fragment = neko_fragment = new WeatherSettingsActivity();
+                    break;
+                case "iconpacks":
+                    fragment = neko_fragment = new IconPacksActivity();
+                    break;
+                case "exteraless_ai":
+                    fragment = neko_fragment = new AiSettingsActivity();
+                    break;
+                case "exteraless_cloud":
+                    fragment = neko_fragment = new OpenExteraCloudActivity();
+                    break;
+                case "exteraless_glyph":
+                    fragment = neko_fragment = new OpenExteraGlyphActivity();
                     break;
                 case "send_logs":
                     sendLogs(activity, false);
