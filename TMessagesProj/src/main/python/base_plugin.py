@@ -638,9 +638,11 @@ class BasePlugin:
         if raw is None:
             return default
         try:
-            return json.loads(raw)
+            value = json.loads(raw)
         except (ValueError, TypeError):
             return default
+        from plugin_settings import coerce_value
+        return coerce_value(value, default)
 
     def set_setting(self, key: str, value, reload_settings: bool = False):
         if not self._exteraless_bridge_available():
@@ -659,8 +661,8 @@ class BasePlugin:
             return {}
         try:
             raw = PythonBridge.exportSettings(self._exteraless_plugin_id)
-            data = json.loads(raw) if raw else {}
-            return data if isinstance(data, dict) else {}
+            from plugin_settings import decode_values
+            return decode_values(raw) if raw else {}
         except Exception as e:
             self.log(f"export_settings() failed: {e}")
             return {}
@@ -669,8 +671,9 @@ class BasePlugin:
         if not self._exteraless_bridge_available():
             return
         try:
+            from plugin_settings import encode_values
             PythonBridge.importSettings(self._exteraless_plugin_id,
-                                        json.dumps(dict(settings), ensure_ascii=False),
+                                        json.dumps(encode_values(settings), ensure_ascii=False),
                                         bool(reload_settings))
         except Exception as e:
             self.log(f"import_settings() failed: {e}")
