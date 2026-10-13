@@ -26,6 +26,7 @@ import tw.nekomimi.nekogram.ui.cells.HeaderCell;
 public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
 
     private static final int MENU_CLOUD = 1;
+    private static final int MENU_SEARCH = 2;
 
     private static final int TYPE_ABOUT = 100;
 
@@ -98,7 +99,9 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
                             android.view.Gravity.TOP));
         }
         if (actionBar != null) {
-            actionBar.createMenu().addItem(MENU_CLOUD, R.drawable.cloud_sync, getResourceProvider());
+            final org.telegram.ui.ActionBar.ActionBarMenu menu = actionBar.createMenu();
+            menu.addItem(MENU_SEARCH, R.drawable.outline_header_search, getResourceProvider());
+            menu.addItem(MENU_CLOUD, R.drawable.cloud_sync, getResourceProvider());
             actionBar.setActionBarMenuOnItemClick(new org.telegram.ui.ActionBar.ActionBar.ActionBarMenuOnItemClick() {
                 @Override
                 public void onItemClick(int id) {
@@ -106,6 +109,8 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
                         finishFragment();
                     } else if (id == MENU_CLOUD) {
                         presentFragment(new OpenExteraCloudActivity());
+                    } else if (id == MENU_SEARCH) {
+                        showSettingsSearchDialog();
                     }
                 }
             });
