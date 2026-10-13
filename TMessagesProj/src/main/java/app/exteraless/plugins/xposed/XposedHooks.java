@@ -151,6 +151,28 @@ public final class XposedHooks {
 
     // ---------- регистрация хуков ----------
 
+    private static final String[] DENIED_HOOK_PREFIXES = {
+            "org.telegram.ui.Wallet.",
+            "org.telegram.tgnet.tl.TL_wallet",
+            "org.telegram.tgnet.tl.TL_toncenter",
+            "java.security.KeyStore",
+            "android.security.keystore",
+    };
+
+    private static boolean deniedTarget(String pluginId, Class<?> clazz) {
+        if (clazz == null) {
+            return false;
+        }
+        final String name = clazz.getName();
+        for (String prefix : DENIED_HOOK_PREFIXES) {
+            if (name.startsWith(prefix)) {
+                FileLog.e("XposedHooks: plugin " + pluginId + " may not hook " + name);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static String hookMethod(String pluginId, Object member, PyObject handler,
                                     int priority, String filtersJson) {
         if (!ensureInitialized()) {
@@ -159,6 +181,9 @@ public final class XposedHooks {
         if (pluginId == null || handler == null || !(member instanceof Member)) {
             FileLog.e("XposedHooks.hookMethod: bad arguments (pluginId=" + pluginId
                     + ", member=" + member + ", handler=" + handler + ")");
+            return null;
+        }
+        if (deniedTarget(pluginId, ((Member) member).getDeclaringClass())) {
             return null;
         }
         try {
@@ -181,6 +206,9 @@ public final class XposedHooks {
                 || methodName == null || methodName.isEmpty()) {
             FileLog.e("XposedHooks.hookAllMethods: bad arguments (pluginId=" + pluginId
                     + ", clazz=" + clazz + ", methodName=" + methodName + ")");
+            return "[]";
+        }
+        if (deniedTarget(pluginId, (Class<?>) clazz)) {
             return "[]";
         }
         try {
@@ -225,6 +253,9 @@ public final class XposedHooks {
         if (pluginId == null || handler == null || !(clazz instanceof Class)) {
             FileLog.e("XposedHooks.hookAllConstructors: bad arguments (pluginId=" + pluginId
                     + ", clazz=" + clazz + ")");
+            return "[]";
+        }
+        if (deniedTarget(pluginId, (Class<?>) clazz)) {
             return "[]";
         }
         try {

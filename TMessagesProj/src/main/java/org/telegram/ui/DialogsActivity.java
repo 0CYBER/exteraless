@@ -14212,6 +14212,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
                 presentFragment(new ChatActivity(args));
             });
+            if (getMessagesController().config.walletAvailable.get()) {
+                io.add(R.drawable.ic_gram, getString(R.string.WalletTitle), () -> presentFragment(new WalletActivity()));
+            }
             }
             if (hideBottomNavigationBar && NaConfig.INSTANCE.getShowAddToBookmark().Bool()) {
                 io.add(R.drawable.msg_fave, getString(R.string.BookmarksManager), () -> presentFragment(new BookmarkManagerActivity()));
@@ -14232,11 +14235,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             io.addGapIf(hideBottomNavigationBar);
             if (ApplicationLoader.applicationLoaderInstance != null) {
                 ApplicationLoader.applicationLoaderInstance.addItemOptions(io);
-            }
-            if (getMessagesController().config.walletAvailable.get()) {
-                io.add(R.drawable.ic_gram, LocaleController.getString(R.string.WalletAttachMoney), () -> {
-                    presentFragment(new WalletActivity());
-                });
             }
             TLRPC.TL_attachMenuBots menuBots = MediaDataController.getInstance(UserConfig.selectedAccount).getAttachMenuBots();
             if (launchActivity != null && menuBots != null && menuBots.bots != null && !menuBots.bots.isEmpty()) {

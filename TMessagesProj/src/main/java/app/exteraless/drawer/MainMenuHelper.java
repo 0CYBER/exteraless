@@ -44,6 +44,7 @@ import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.SettingsActivity;
 import app.exteraless.plugins.ui.PluginsActivity;
 
+import org.telegram.ui.Wallet.WalletActivity;
 import org.telegram.ui.WebAppDisclaimerAlert;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.web.SearchEngine;
@@ -322,8 +323,22 @@ public final class MainMenuHelper {
             case RECENT_CHATS:
                 return new MenuItemInfo(R.drawable.menu_recent, LocaleController.getString(R.string.RecentChats),
                         () -> showRecentChats(fragment, currentAccount), null);
+            case WALLET:
+                if (!isWalletAvailable(currentAccount)) {
+                    return null;
+                }
+                return new MenuItemInfo(R.drawable.ic_gram, LocaleController.getString(R.string.WalletTitle),
+                        () -> fragment.presentFragment(new WalletActivity()), null);
             default:
                 return null;
+        }
+    }
+
+    public static boolean isWalletAvailable(int currentAccount) {
+        try {
+            return MessagesController.getInstance(currentAccount).config.walletAvailable.get();
+        } catch (Exception e) {
+            return false;
         }
     }
 
@@ -444,6 +459,9 @@ public final class MainMenuHelper {
             case QR -> new MenuItemInfo(R.drawable.msg_qrcode, LocaleController.getString(R.string.AuthAnotherClient), null, null);
             case GHOST_MODE -> new MenuItemInfo(R.drawable.ayu_ghost, ghostModeTitle(), null, null);
             case RECENT_CHATS -> new MenuItemInfo(R.drawable.menu_recent, LocaleController.getString(R.string.RecentChats), null, null);
+            case WALLET -> isWalletAvailable(UserConfig.selectedAccount)
+                    ? new MenuItemInfo(R.drawable.ic_gram, LocaleController.getString(R.string.WalletTitle), null, null)
+                    : null;
             default -> null;
         };
     }
