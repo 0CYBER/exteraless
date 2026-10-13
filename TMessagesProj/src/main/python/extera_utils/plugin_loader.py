@@ -728,11 +728,15 @@ def _reflection_gate(op, target, member):
 
 def _install_reflection_gate() -> None:
     try:
-        from java.chaquopy import get_reflection_policy, set_reflection_policy
+        from java.chaquopy import set_reflection_policy
     except Exception:
         return
     try:
-        if get_reflection_policy() is not _reflection_gate:
+        from java.chaquopy import get_reflection_policy
+    except Exception:
+        get_reflection_policy = None
+    try:
+        if get_reflection_policy is None or get_reflection_policy() is not _reflection_gate:
             set_reflection_policy(_reflection_gate)
     except Exception as e:
         print(f"[exteraless:plugin_loader] reflection gate install failed: {e}",
