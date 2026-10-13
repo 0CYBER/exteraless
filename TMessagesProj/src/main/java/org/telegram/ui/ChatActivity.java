@@ -41239,7 +41239,7 @@ public class ChatActivity extends BaseFragment implements
                 if (msg == null || msg.messageOwner != null && msg.messageOwner.hide) {
                     return -1000;
                 }
-                if (NekoConfig.ignoreBlocked.Bool() && ChatObject.isMegagroup(currentChat)) {
+                if (AyuFilter.shouldHideSenders() && ChatObject.isMegagroup(currentChat)) {
                     long fromId = msg.getFromChatId();
                     if (isBlockedUser(fromId) || AyuFilter.isBlockedChannel(fromId)) {
                         return -1000;
@@ -41263,7 +41263,7 @@ public class ChatActivity extends BaseFragment implements
                         if (m.messageOwner != null && m.messageOwner.hide) {
                             continue;
                         }
-                        if (NekoConfig.ignoreBlocked.Bool() && ChatObject.isMegagroup(currentChat)) {
+                        if (AyuFilter.shouldHideSenders() && ChatObject.isMegagroup(currentChat)) {
                             long fromId = m.getFromChatId();
                             if (isBlockedUser(fromId) || AyuFilter.isBlockedChannel(fromId)) {
                                 continue;
@@ -51062,10 +51062,10 @@ public class ChatActivity extends BaseFragment implements
     }
 
     public boolean isBlockedUser(long senderId) {
-        if (!NekoConfig.ignoreBlocked.Bool()) {
-            return false;
+        if (NekoConfig.ignoreBlocked.Bool() && getMessagesController().blockePeers.indexOfKey(senderId) >= 0) {
+            return true;
         }
-        return getMessagesController().blockePeers.indexOfKey(senderId) >= 0 || AyuFilter.isCustomFilteredPeer(senderId);
+        return AyuFilter.isCustomFilteredPeer(senderId);
     }
 
     private void updateBotforumTabsBottomMargin() {

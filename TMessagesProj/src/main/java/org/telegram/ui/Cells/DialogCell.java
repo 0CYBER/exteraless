@@ -3381,13 +3381,13 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             boolean blocked = false;
                             boolean replyBlocked = false;
                             boolean needsReplyTargetCheck = false;
-                            if (NekoConfig.ignoreBlocked.Bool() && ChatObject.isMegagroup(MessagesController.getInstance(currentAccount).getChat(-dialog.id))) {
-                                blocked = MessagesController.getInstance(currentAccount).blockePeers.indexOfKey(message.getFromChatId()) >= 0;
+                            if (AyuFilter.shouldHideSenders() && ChatObject.isMegagroup(MessagesController.getInstance(currentAccount).getChat(-dialog.id))) {
+                                blocked = NekoConfig.ignoreBlocked.Bool() && MessagesController.getInstance(currentAccount).blockePeers.indexOfKey(message.getFromChatId()) >= 0;
                                 blocked = blocked || AyuFilter.isCustomFilteredPeer(message.getFromChatId());
                                 blocked = blocked || AyuFilter.isBlockedChannel(message.getFromChatId());
                                 if (message.replyMessageObject != null) {
                                     long fromId = message.replyMessageObject.getFromChatId();
-                                    replyBlocked = MessagesController.getInstance(currentAccount).blockePeers.indexOfKey(fromId) >= 0;
+                                    replyBlocked = NekoConfig.ignoreBlocked.Bool() && MessagesController.getInstance(currentAccount).blockePeers.indexOfKey(fromId) >= 0;
                                     replyBlocked = replyBlocked || AyuFilter.isCustomFilteredPeer(fromId);
                                     replyBlocked = replyBlocked || AyuFilter.isBlockedChannel(fromId);
                                 } else if (message.getReplyMsgId() != 0) {

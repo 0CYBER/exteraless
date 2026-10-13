@@ -11473,11 +11473,12 @@ public class MessagesController extends BaseController implements NotificationCe
                 Integer threadId = threadEntry.getKey();
                 ArrayList<PrintingUser> arr = threadEntry.getValue();
                 // ignoreBlocked start
-                if (NekoConfig.ignoreBlocked.Bool()) {
+                if (AyuFilter.shouldHideSenders()) {
+                    boolean hideBlocked = NekoConfig.ignoreBlocked.Bool();
                     LongSparseIntArray blockePeersCopy = blockePeers.clone();
                     ArrayList<PrintingUser> filteredArr = new ArrayList<>();
                     for (PrintingUser pu : arr) {
-                        if (blockePeersCopy.indexOfKey(pu.userId) < 0 && !AyuFilter.isCustomFilteredPeer(pu.userId)) {
+                        if ((!hideBlocked || blockePeersCopy.indexOfKey(pu.userId) < 0) && !AyuFilter.isCustomFilteredPeer(pu.userId)) {
                             filteredArr.add(pu);
                         }
                     }
