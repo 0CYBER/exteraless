@@ -109,6 +109,7 @@
     <application
         android:name="org.telegram.messenger.ApplicationLoader"
         android:allowBackup="true"
+        android:appCategory="social"
         android:restoreAnyVersion="true"
         android:backupAgent=".BackupAgent"
         android:hardwareAccelerated="true"
