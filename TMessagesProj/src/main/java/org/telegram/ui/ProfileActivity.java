@@ -14729,7 +14729,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 sb.append("x");
                                 sb.setSpan(new AnimatedEmojiSpan(bot_verification.icon, cell.getTextView().getPaint().getFontMetricsInt()), sb.length() - 1, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                 sb.append(" ");
-                                SpannableString description = new SpannableString(MessageObject.formatTextWithEntities(bot_verification.description));
+                                SpannableString description = new SpannableString(MessageObject.formatTextWithEntities(bot_verification.getDescription()));
                                 try {
                                     AndroidUtilities.addLinksSafe(description, Linkify.WEB_URLS, false, false);
                                     URLSpan[] spans = description.getSpans(0, description.length(), URLSpan.class);
