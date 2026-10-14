@@ -366,13 +366,15 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 26);
         titleView.setTypeface(AndroidUtilities.bold());
         titleView.setSingleLine(true);
+        titleView.setHorizontallyScrolling(false);
         titleView.setEllipsize(TextUtils.TruncateAt.END);
-        titles.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        titles.addView(titleView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
         artistView = new TextView(context);
         artistView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         artistView.setSingleLine(true);
+        artistView.setHorizontallyScrolling(false);
         artistView.setEllipsize(TextUtils.TruncateAt.END);
-        titles.addView(artistView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
+        titles.addView(artistView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
         titleRow.addView(titles, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
         likeButton = new MorphButton(context, heartIcon);
         likeButton.setRadius(dp(24), false);
@@ -1948,9 +1950,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         int titleSize = PlayerStyle.titleSize();
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, titleSize == 0 ? 22 : titleSize == 2 ? 31 : 26);
         artistView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, titleSize == 0 ? 15 : titleSize == 2 ? 17 : 16);
-        int gravity = PlayerStyle.titleCentered() ? Gravity.CENTER_HORIZONTAL : Gravity.START;
-        titleView.setGravity(gravity);
-        artistView.setGravity(gravity);
+        titles.setGravity(PlayerStyle.titleCentered() ? Gravity.CENTER_HORIZONTAL : Gravity.START);
         if (previewMode) {
             likeButton.setVisibility(PlayerStyle.showLike() ? View.VISIBLE : View.GONE);
             titleSpacer.setVisibility(PlayerStyle.showLike() && PlayerStyle.titleCentered() ? View.VISIBLE : View.GONE);
