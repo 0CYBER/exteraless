@@ -105,9 +105,14 @@ public class WeatherPill extends BasePill implements PillStackEvents.Listener {
         }
     }
 
+    private static boolean usesDeviceLocation() {
+        return PillStackConfig.useCurrentLocation() || !PillStackConfig.hasCustomWeatherLocation();
+    }
+
     @Override
     public void onUpdateData(boolean force) {
-        if (PillStackConfig.useCurrentLocation()) {
+        boolean deviceLocation = usesDeviceLocation();
+        if (deviceLocation) {
             // без разрешения/со включёнными службами геолокации сеть дёргать бессмысленно —
             // показываем состояние-подсказку, тап по которой запросит разрешение
             if (!WeatherSettingsActivity.isLocationPermissionGranted()) {
@@ -124,10 +129,10 @@ public class WeatherPill extends BasePill implements PillStackEvents.Listener {
         }
         requestInFlight = true;
         startLoading();
-        if (!PillStackConfig.useCurrentLocation() && PillStackConfig.hasCustomWeatherLocation()) {
-            Weather.fetch(PillStackConfig.customWeatherLatitude(), PillStackConfig.customWeatherLongitude(), this::onWeatherFetched);
-        } else {
+        if (deviceLocation) {
             Weather.fetch(false, this::onWeatherFetched);
+        } else {
+            Weather.fetch(PillStackConfig.customWeatherLatitude(), PillStackConfig.customWeatherLongitude(), this::onWeatherFetched);
         }
     }
 
@@ -227,7 +232,7 @@ public class WeatherPill extends BasePill implements PillStackEvents.Listener {
 
     @Override
     public void onPillClicked() {
-        if (PillStackConfig.useCurrentLocation() && !showingWeather
+        if (usesDeviceLocation() && !showingWeather
                 && (!WeatherSettingsActivity.isLocationPermissionGranted() || !WeatherSettingsActivity.isLocationEnabled())) {
             // Weather.getUserLocation сам покажет системный запрос разрешения / диалог про GPS
             Weather.getUserLocation(true, location -> {
