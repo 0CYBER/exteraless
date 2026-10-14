@@ -17332,8 +17332,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     needRestoreColor = true;
                     oldAlpha = Theme.chat_msgTextPaint.getAlpha();
                     oldLinkAlpha = Color.alpha(Theme.chat_msgTextPaint.linkColor);
-                    Theme.chat_msgTextPaint.setAlpha((int) (oldAlpha * alpha));
-                    Theme.chat_msgTextPaint.linkColor = ColorUtils.setAlphaComponent(Theme.chat_msgTextPaint.linkColor, (int) (oldLinkAlpha * alpha));
+                    Theme.chat_msgTextPaint.setAlpha((int) (oldAlpha * Utilities.clamp01(alpha)));
+                    Theme.chat_msgTextPaint.linkColor = ColorUtils.setAlphaComponent(Theme.chat_msgTextPaint.linkColor, (int) (oldLinkAlpha * Utilities.clamp01(alpha)));
                 } else {
                     if (currentBackgroundDrawable != null) {
                         int top = currentBackgroundDrawable.getBounds().top;
