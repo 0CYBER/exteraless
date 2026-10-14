@@ -19263,7 +19263,7 @@ public class MessagesStorage extends BaseController {
         return isForum(dialogId, FORUM_TYPE_DIRECT);
     }
 
-    public int getForumTypeFlags(long dialogId) {
+    public synchronized int getForumTypeFlags(long dialogId) {
         int value = dialogIsForumTyped.get(dialogId, -1);
         if (value == -1) {
             value = 0;
@@ -19309,7 +19309,7 @@ public class MessagesStorage extends BaseController {
         return (value & type) != 0;
     }
 
-    private void isForumCacheInvalidate(long dialogId) {
+    private synchronized void isForumCacheInvalidate(long dialogId) {
         dialogIsForumTyped.delete(dialogId);
     }
 
