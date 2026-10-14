@@ -184,4 +184,7 @@ Código:
     <string name="PluginsSafeModeEnabledNow">Modo seguro activado: todos los plugins están desactivados.</string>
     <string name="PluginsSafeModeDisabledNow">Modo seguro desactivado: cargando los plugins.</string>
     <string name="PluginActivityExport">Exportar registro</string>
+    <string name="OEPluginLinkEngineDisabled">Activa el **motor de plugins** para abrir los ajustes de **%1$s**.</string>
+    <string name="OEPluginLinkNotFound">El plugin **%1$s** no está instalado.</string>
+    <string name="OEPluginLinkNoSettings">**%1$s** no tiene ajustes.</string>
 </resources>

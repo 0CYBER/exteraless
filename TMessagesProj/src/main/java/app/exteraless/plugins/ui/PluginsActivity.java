@@ -304,6 +304,14 @@ public class PluginsActivity extends BaseFragment {
         }
 
         @Override
+        public void copyPluginSettingsLink() {
+            AndroidUtilities.addToClipboard(PluginsController.settingsLink(plugin.id, null));
+            if (AndroidUtilities.shouldShowClipboardToast()) {
+                org.telegram.ui.Components.BulletinFactory.of(PluginsActivity.this).createCopyLinkBulletin().show();
+            }
+        }
+
+        @Override
         public void openPluginPermissions() {
             presentFragment(new PluginPermissionsActivity(plugin.id));
         }

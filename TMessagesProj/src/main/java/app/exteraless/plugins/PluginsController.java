@@ -2,6 +2,7 @@ package app.exteraless.plugins;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -10,8 +11,10 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -1226,6 +1229,47 @@ public class PluginsController extends com.exteragram.messenger.plugins.PluginsC
 
     public static void openPluginSettings(String pluginId) {
         openPluginSettings(pluginId, null);
+    }
+
+    public static String settingsLink(String pluginId, String linkAlias) {
+        String link = "https://t.me/exteraSettings?p=" + android.net.Uri.encode(pluginId);
+        return TextUtils.isEmpty(linkAlias) ? link : link + "&s=" + android.net.Uri.encode(linkAlias);
+    }
+
+    public static boolean isSettingsLink(String path, android.net.Uri data) {
+        return path != null && data != null
+                && ("exterasettings".equalsIgnoreCase(path) || "exteraless".equalsIgnoreCase(path))
+                && !TextUtils.isEmpty(data.getQueryParameter("p"));
+    }
+
+    public static void openSettingsLink(android.net.Uri data) {
+        String pluginId = data.getQueryParameter("p");
+        String linkAlias = data.getQueryParameter("s");
+        AndroidUtilities.runOnUIThread(() -> {
+            BaseFragment fragment = LaunchActivity.getSafeLastFragment();
+            if (fragment == null) {
+                return;
+            }
+            PluginsController controller = getInstance();
+            if (!controller.isEngineEnabled()) {
+                org.telegram.ui.Components.BulletinFactory.of(fragment).createSimpleBulletin(R.raw.error,
+                        AndroidUtilities.replaceTags(LocaleController.formatString(R.string.OEPluginLinkEngineDisabled, pluginId)),
+                        LocaleController.getString(R.string.Enable), () -> fragment.presentFragment(new app.exteraless.plugins.ui.PluginsActivity())).show();
+                return;
+            }
+            Plugin plugin = controller.getPlugin(pluginId);
+            if (plugin == null) {
+                org.telegram.ui.Components.BulletinFactory.of(fragment).createSimpleBulletin(R.raw.error,
+                        AndroidUtilities.replaceTags(LocaleController.formatString(R.string.OEPluginLinkNotFound, pluginId))).show();
+                return;
+            }
+            if (!controller.hasPluginSettings(pluginId)) {
+                org.telegram.ui.Components.BulletinFactory.of(fragment).createSimpleBulletin(R.raw.error,
+                        AndroidUtilities.replaceTags(LocaleController.formatString(R.string.OEPluginLinkNoSettings, plugin.getDisplayName()))).show();
+                return;
+            }
+            PythonPluginsEngine.getInstance().openPluginSettings(plugin, fragment, TextUtils.isEmpty(linkAlias) ? null : linkAlias);
+        });
     }
 
     public static void openPluginSettings(String pluginId, String targetSetting) {

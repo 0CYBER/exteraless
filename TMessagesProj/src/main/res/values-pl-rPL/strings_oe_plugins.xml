@@ -184,4 +184,7 @@ Wtyczka: %1$s
     <string name="PluginsSafeModeEnabledNow">Tryb awaryjny włączony, wszystkie wtyczki są wyłączone.</string>
     <string name="PluginsSafeModeDisabledNow">Tryb awaryjny wyłączony, wtyczki się ładują.</string>
     <string name="PluginActivityExport">Eksportuj dziennik</string>
+    <string name="OEPluginLinkEngineDisabled">Włącz **silnik wtyczek**, aby otworzyć ustawienia **%1$s**.</string>
+    <string name="OEPluginLinkNotFound">Wtyczka **%1$s** nie jest zainstalowana.</string>
+    <string name="OEPluginLinkNoSettings">**%1$s** nie ma ustawień.</string>
 </resources>

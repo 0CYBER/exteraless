@@ -198,4 +198,7 @@ Source:
     <string name="PluginsSafeModeEnabledNow">Safe mode is on, all plugins are turned off.</string>
     <string name="PluginsSafeModeDisabledNow">Safe mode is off, plugins are loading.</string>
     <string name="PluginActivityExport">Export log</string>
+    <string name="OEPluginLinkEngineDisabled">Enable the **plugin engine** to open settings of **%1$s**.</string>
+    <string name="OEPluginLinkNotFound">Plugin **%1$s** is not installed.</string>
+    <string name="OEPluginLinkNoSettings">**%1$s** has no settings.</string>
 </resources>

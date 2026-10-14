@@ -193,4 +193,7 @@
     <string name="PluginsSafeModeEnabledNow">Безопасный режим включён, все плагины выключены.</string>
     <string name="PluginsSafeModeDisabledNow">Безопасный режим выключен, плагины загружаются.</string>
     <string name="PluginActivityExport">Выгрузить журнал</string>
+    <string name="OEPluginLinkEngineDisabled">Включите **движок плагинов**, чтобы открыть настройки **%1$s**.</string>
+    <string name="OEPluginLinkNotFound">Плагин **%1$s** не установлен.</string>
+    <string name="OEPluginLinkNoSettings">У **%1$s** нет настроек.</string>
 </resources>

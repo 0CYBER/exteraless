@@ -186,4 +186,7 @@
     <string name="PluginsSafeModeEnabledNow">تم تفعيل الوضع الآمن، وأُوقفت جميع الإضافات.</string>
     <string name="PluginsSafeModeDisabledNow">تم إيقاف الوضع الآمن، جارٍ تحميل الإضافات.</string>
     <string name="PluginActivityExport">تصدير السجل</string>
+    <string name="OEPluginLinkEngineDisabled">فعّل **محرك الإضافات** لفتح إعدادات **%1$s**.</string>
+    <string name="OEPluginLinkNotFound">الإضافة **%1$s** غير مثبتة.</string>
+    <string name="OEPluginLinkNoSettings">لا توجد إعدادات لـ **%1$s**.</string>
 </resources>

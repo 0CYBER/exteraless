@@ -2117,7 +2117,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                         String path = data.getPath();
                                         if (path != null && path.length() > 1) {
                                             path = path.substring(1);
-                                            if (path.startsWith("$")) {
+                                            if (app.exteraless.plugins.PluginsController.isSettingsLink(path, data)) {
+                                                app.exteraless.plugins.PluginsController.openSettingsLink(data);
+                                            } else if (path.startsWith("$")) {
                                                 inputInvoiceSlug = path.substring(1);
                                             } else if (path.startsWith("invoice/")) {
                                                 inputInvoiceSlug = path.substring(path.indexOf('/') + 1);
