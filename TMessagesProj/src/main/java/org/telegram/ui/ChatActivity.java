@@ -41294,22 +41294,7 @@ public class ChatActivity extends BaseFragment implements
                 // return messages.get(position - messagesStartRow).contentType;
                 // Message filter start
                 var msg = messages.get(position - messagesStartRow);
-                if (msg == null || msg.messageOwner != null && msg.messageOwner.hide) {
-                    return -1000;
-                }
-                if (AyuFilter.shouldHideSenders() && ChatObject.isMegagroup(currentChat)) {
-                    long fromId = msg.getFromChatId();
-                    if (isBlockedUser(fromId) || AyuFilter.isBlockedChannel(fromId)) {
-                        return -1000;
-                    }
-                    if (msg.replyMessageObject != null) {
-                        fromId = msg.replyMessageObject.getFromChatId();
-                        if (isBlockedUser(fromId) || AyuFilter.isBlockedChannel(fromId)) {
-                            return -1000;
-                        }
-                    }
-                }
-                if (AyuFilter.isFiltered(msg, getGroup(msg.getGroupId()))) {
+                if (isHiddenByFilters(msg)) {
                     return -1000;
                 }
                 if (msg.contentType == 2) { // ChatUnreadCell
@@ -41317,24 +41302,7 @@ public class ChatActivity extends BaseFragment implements
                     boolean hasVisibleAfter = false;
                     for (int i = scanIndex; i >= 0; i--) {
                         var m = messages.get(i);
-                        if (m == null) continue;
-                        if (m.messageOwner != null && m.messageOwner.hide) {
-                            continue;
-                        }
-                        if (AyuFilter.shouldHideSenders() && ChatObject.isMegagroup(currentChat)) {
-                            long fromId = m.getFromChatId();
-                            if (isBlockedUser(fromId) || AyuFilter.isBlockedChannel(fromId)) {
-                                continue;
-                            }
-                            if (m.replyMessageObject != null) {
-                                fromId = m.replyMessageObject.getFromChatId();
-                                if (isBlockedUser(fromId) || AyuFilter.isBlockedChannel(fromId)) {
-                                    continue;
-                                }
-                            }
-                        }
-                        var g = getGroup(m.getGroupId());
-                        if (AyuFilter.isFiltered(m, g)) {
+                        if (m == null || isHiddenByFilters(m)) {
                             continue;
                         }
                         hasVisibleAfter = true;
@@ -41343,6 +41311,9 @@ public class ChatActivity extends BaseFragment implements
                     if (!hasVisibleAfter) {
                         return -1000;
                     }
+                }
+                if (msg.isDateObject && !hasVisibleMessagesOfDay(messages, position - messagesStartRow)) {
+                    return -1000;
                 }
                 return msg.contentType;
                 // Message filter end
@@ -41356,6 +41327,49 @@ public class ChatActivity extends BaseFragment implements
                 return 8;
             }
             return 4;
+        }
+
+        private boolean isHiddenByFilters(MessageObject m) {
+            if (m == null || m.messageOwner != null && m.messageOwner.hide) {
+                return true;
+            }
+            if (m.isDateObject || m.contentType == 2) {
+                return false;
+            }
+            if (AyuFilter.shouldHideSenders() && ChatObject.isMegagroup(currentChat)) {
+                long fromId = m.getFromChatId();
+                if (isBlockedUser(fromId) || AyuFilter.isBlockedChannel(fromId)) {
+                    return true;
+                }
+                if (m.replyMessageObject != null) {
+                    fromId = m.replyMessageObject.getFromChatId();
+                    if (isBlockedUser(fromId) || AyuFilter.isBlockedChannel(fromId)) {
+                        return true;
+                    }
+                }
+            }
+            return AyuFilter.isFiltered(m, getGroup(m.getGroupId()));
+        }
+
+        private boolean hasVisibleMessagesOfDay(ArrayList<MessageObject> messages, int dateIndex) {
+            boolean any = false;
+            for (int i = dateIndex - 1; i >= 0; i--) {
+                MessageObject m = messages.get(i);
+                if (m == null) {
+                    continue;
+                }
+                if (m.isDateObject) {
+                    break;
+                }
+                if (m.contentType == 2) {
+                    continue;
+                }
+                any = true;
+                if (!isHiddenByFilters(m)) {
+                    return true;
+                }
+            }
+            return !any;
         }
 
         @Override
