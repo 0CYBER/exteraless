@@ -13438,7 +13438,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         if (textLayoutBlocks == null) {
             return;
         }
-        int length = end - start;
         for (int c = 0; c < textLayoutBlocks.size(); c++) {
             MessageObject.TextLayoutBlock block = textLayoutBlocks.get(c);
             if (start >= block.charactersOffset && start < block.charactersEnd) {
@@ -13447,22 +13446,21 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 try {
                     LinkPath path = obtainNewUrlPath();
                     path.setUseCornerPathImplementation(true);
-                    path.setCurrentLayout(block.textLayout, start, 0);
-                    block.textLayout.getSelectionPath(start, end, path);
+                    path.setCurrentLayout(block.textLayout, start - block.charactersOffset, 0);
+                    block.textLayout.getSelectionPath(start - block.charactersOffset, Math.min(end, block.charactersEnd) - block.charactersOffset, path);
                     path.closeRects();
                     float y = block.height + block.padBottom;
-                    if (end >= block.charactersOffset + length) {
+                    if (end > block.charactersEnd) {
                         for (int a = c + 1; a < textLayoutBlocks.size(); a++) {
                             MessageObject.TextLayoutBlock nextBlock = textLayoutBlocks.get(a);
-                            length = nextBlock.charactersEnd - nextBlock.charactersOffset;
                             path = obtainNewUrlPath();
                             path.setUseCornerPathImplementation(true);
                             y += nextBlock.padTop;
                             path.setCurrentLayout(nextBlock.textLayout, 0, y);
                             y += nextBlock.height + nextBlock.padBottom;
-                            nextBlock.textLayout.getSelectionPath(0, end - nextBlock.charactersOffset, path);
+                            nextBlock.textLayout.getSelectionPath(0, Math.min(end, nextBlock.charactersEnd) - nextBlock.charactersOffset, path);
                             path.closeRects();
-                            if (end < block.charactersOffset + length - 1) {
+                            if (end <= nextBlock.charactersEnd) {
                                 break;
                             }
                         }
@@ -13509,7 +13507,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
             if (start >= 0 && end >= 0) {
-                int length = (end - start);
                 for (int c = 0; c < captionLayout.textLayoutBlocks.size(); c++) {
                     MessageObject.TextLayoutBlock block = captionLayout.textLayoutBlocks.get(c);
                     if (start >= block.charactersOffset && start < block.charactersEnd) {
@@ -13518,16 +13515,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         resetUrlPaths();
                         try {
                             LinkPath path = obtainNewUrlPath();
-                            path.setCurrentLayout(block.textLayout, start, 0);
-                            block.textLayout.getSelectionPath(start, end, path);
-                            if (end >= block.charactersOffset + length) {
+                            path.setCurrentLayout(block.textLayout, start - block.charactersOffset, 0);
+                            block.textLayout.getSelectionPath(start - block.charactersOffset, Math.min(end, block.charactersEnd) - block.charactersOffset, path);
+                            if (end > block.charactersEnd) {
                                 for (int a = c + 1; a < captionLayout.textLayoutBlocks.size(); a++) {
                                     MessageObject.TextLayoutBlock nextBlock = captionLayout.textLayoutBlocks.get(a);
-                                    length = nextBlock.charactersEnd - nextBlock.charactersOffset;
                                     path = obtainNewUrlPath();
                                     path.setCurrentLayout(nextBlock.textLayout, 0, nextBlock.height);
-                                    nextBlock.textLayout.getSelectionPath(0, end - nextBlock.charactersOffset, path);
-                                    if (end < block.charactersOffset + length - 1) {
+                                    nextBlock.textLayout.getSelectionPath(0, Math.min(end, nextBlock.charactersEnd) - nextBlock.charactersOffset, path);
+                                    if (end <= nextBlock.charactersEnd) {
                                         break;
                                     }
                                 }
@@ -13555,7 +13551,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
             if (start >= 0 && end >= 0) {
-                int length = (end - start);
                 for (int c = 0; c < messageObject.textLayoutBlocks.size(); c++) {
                     MessageObject.TextLayoutBlock block = messageObject.textLayoutBlocks.get(c);
                     if (start >= block.charactersOffset && start < block.charactersEnd) {
@@ -13564,16 +13559,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         resetUrlPaths();
                         try {
                             LinkPath path = obtainNewUrlPath();
-                            path.setCurrentLayout(block.textLayout, start, 0);
-                            block.textLayout.getSelectionPath(start, end, path);
-                            if (end >= block.charactersOffset + length) {
+                            path.setCurrentLayout(block.textLayout, start - block.charactersOffset, 0);
+                            block.textLayout.getSelectionPath(start - block.charactersOffset, Math.min(end, block.charactersEnd) - block.charactersOffset, path);
+                            if (end > block.charactersEnd) {
                                 for (int a = c + 1; a < messageObject.textLayoutBlocks.size(); a++) {
                                     MessageObject.TextLayoutBlock nextBlock = messageObject.textLayoutBlocks.get(a);
-                                    length = nextBlock.charactersEnd - nextBlock.charactersOffset;
                                     path = obtainNewUrlPath();
                                     path.setCurrentLayout(nextBlock.textLayout, 0, nextBlock.height);
-                                    nextBlock.textLayout.getSelectionPath(0, end - nextBlock.charactersOffset, path);
-                                    if (end < block.charactersOffset + length - 1) {
+                                    nextBlock.textLayout.getSelectionPath(0, Math.min(end, nextBlock.charactersEnd) - nextBlock.charactersOffset, path);
+                                    if (end <= nextBlock.charactersEnd) {
                                         break;
                                     }
                                 }
