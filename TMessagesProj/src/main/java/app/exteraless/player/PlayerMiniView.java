@@ -110,6 +110,9 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     private float dockProgress;
     private float topTranslation;
     private boolean hasTopTranslation;
+    private float topZone = 1f;
+    private float topShift;
+    private float topVisibility = 1f;
     private boolean dragging;
     private float dragStartY;
     private float dragOffset;
@@ -430,7 +433,7 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     }
 
     public boolean canTransition() {
-        return !preview && isAttachedToWindow() && getVisibility() == VISIBLE && shown && showProgress >= 1f && hostFactor >= 0.99f && card.getWidth() > 0 && cover.getVisibility() == VISIBLE
+        return !preview && isAttachedToWindow() && getVisibility() == VISIBLE && shown && showProgress >= 1f && visibility() >= 0.99f && card.getWidth() > 0 && cover.getVisibility() == VISIBLE
                 && !dragging && dockAnimator == null && lift == 0f;
     }
 
@@ -495,33 +498,49 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     }
 
     public float getVisibleOffset() {
-        return (dp(heightDp) + dp(8)) * showProgress * hostFactor * (1f - Utilities.clamp01(dockProgress));
+        return (dp(heightDp) + dp(8)) * showProgress * hostFactor * (1f - Utilities.clamp01(dockProgress) * topZone);
     }
 
-    public int getTargetOffset() {
-        return shown && hostFactor > 0.5f && !dockTop ? dp(heightDp) + dp(8) : 0;
+    public float getVisibleOffset(boolean chats) {
+        return (dp(heightDp) + dp(8)) * showProgress * hostFactor * (chats ? 1f - Utilities.clamp01(dockProgress) : 1f);
     }
 
-    public float getVisibleTopOffset() {
-        return (dp(heightDp) + dp(16)) * showProgress * hostFactor * Utilities.clamp01(dockProgress);
+    public int getTargetOffset(boolean chats) {
+        return shown && hostFactor > 0.5f && !(chats && dockTop) ? dp(heightDp) + dp(8) : 0;
     }
 
-    public int getTargetTopOffset() {
-        return shown && dockTop ? dp(heightDp) + dp(16) : 0;
+    public int getTargetTopOffset(boolean chats) {
+        return chats && shown && dockTop ? dp(heightDp) + dp(16) : 0;
     }
 
-    public void setTopAnchor(float y) {
+    public void setTopState(float anchor, float zone, float shift, float visibility) {
         if (preview || getHeight() == 0) {
             return;
         }
-        float translation = y + dp(8) - getTop() - card.getTop();
+        float translation = anchor + dp(8) - getTop() - card.getTop();
         hasTopTranslation = true;
-        if (topTranslation != translation) {
+        if (topTranslation != translation || topZone != zone || topShift != shift || topVisibility != visibility) {
             topTranslation = translation;
+            topZone = zone;
+            topShift = shift;
+            topVisibility = visibility;
             if (dockProgress != 0f || dragging) {
                 applyTransform();
             }
         }
+    }
+
+    private boolean atTop() {
+        return Utilities.clamp01(dockProgress) > 0f && topZone >= 0.5f;
+    }
+
+    private float visibility() {
+        float dock = Utilities.clamp01(dockProgress);
+        if (dock == 0f) {
+            return hostFactor;
+        }
+        float swap = Math.min(1f, Math.abs(topZone - 0.5f) * 2f);
+        return (atTop() ? AndroidUtilities.lerp(hostFactor, topVisibility, dock) : hostFactor) * swap;
     }
 
     private float dockTranslation() {
@@ -565,7 +584,7 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     }
 
     private boolean startDrag() {
-        if (dragging || !shown || showProgress < 1f || hostFactor < 0.99f || !hasTopTranslation) {
+        if (dragging || !shown || showProgress < 1f || hostFactor < 0.99f || topVisibility < 0.99f || topZone < 0.99f || !hasTopTranslation) {
             return false;
         }
         if (dockAnimator != null) {
@@ -661,9 +680,11 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     }
 
     private void applyTransform() {
-        float p = showProgress * hostFactor;
-        float direction = 1f - 2f * Utilities.clamp01(dockProgress);
-        setTranslationY(dockTranslation() + dragOffset + dp(24) * (1f - p) * direction);
+        boolean top = atTop();
+        float p = showProgress * visibility();
+        float direction = top ? 1f - 2f * Utilities.clamp01(dockProgress) : 1f;
+        setTranslationX(top ? topShift : 0f);
+        setTranslationY((top ? dockTranslation() : baseTranslation) + dragOffset + dp(24) * (1f - p) * direction);
         setAlpha(p);
         setVisibility(p > 0f ? VISIBLE : GONE);
     }

@@ -92,7 +92,7 @@
     <string name="OEPlayerMiniProgressBorder">Obramowanie</string>
     <string name="OEPlayerMiniProgressNone">Brak</string>
     <string name="OEPlayerMiniColors">Kolory</string>
-    <string name="OEPlayerMiniMoveHint">Przytrzymaj miniodtwarzacz i przeciągnij go w górę lub w dół, aby go przenieść</string>
+    <string name="OEPlayerMiniMoveHint">Na karcie Czaty przytrzymaj miniodtwarzacz i przeciągnij go pod wyszukiwarkę lub z powrotem w dół</string>
     <string name="OEPlayerMiniCompact">Kompaktowy</string>
     <string name="OEPlayerMiniArtist">Pokazuj wykonawcę</string>
     <string name="OEPlayerMiniPrevious">Przycisk „Poprzedni”</string>

@@ -92,7 +92,7 @@
     <string name="OEPlayerMiniProgressBorder">إطار</string>
     <string name="OEPlayerMiniProgressNone">بلا</string>
     <string name="OEPlayerMiniColors">الألوان</string>
-    <string name="OEPlayerMiniMoveHint">اضغط مطولاً على المشغل المصغر واسحبه للأعلى أو للأسفل لنقله</string>
+    <string name="OEPlayerMiniMoveHint">في تبويب الدردشات، اضغط مطولاً على المشغل المصغر واسحبه إلى أسفل البحث أو أعده إلى الأسفل</string>
     <string name="OEPlayerMiniCompact">مضغوط</string>
     <string name="OEPlayerMiniArtist">إظهار الفنان</string>
     <string name="OEPlayerMiniPrevious">زر «السابق»</string>

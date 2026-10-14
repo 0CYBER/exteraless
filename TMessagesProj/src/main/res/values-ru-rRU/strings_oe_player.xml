@@ -92,7 +92,7 @@
     <string name="OEPlayerMiniProgressBorder">Контур</string>
     <string name="OEPlayerMiniProgressNone">Нет</string>
     <string name="OEPlayerMiniColors">Цвета</string>
-    <string name="OEPlayerMiniMoveHint">Зажмите мини-плеер и перетащите вверх или вниз, чтобы переместить его</string>
+    <string name="OEPlayerMiniMoveHint">На вкладке «Чаты» зажмите мини-плеер и перетащите его под поиск или обратно вниз</string>
     <string name="OEPlayerMiniCompact">Компактный</string>
     <string name="OEPlayerMiniArtist">Показывать исполнителя</string>
     <string name="OEPlayerMiniPrevious">Кнопка «Предыдущий трек»</string>

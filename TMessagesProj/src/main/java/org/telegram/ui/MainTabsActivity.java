@@ -1065,12 +1065,16 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
 
         }
 
-        default void setMiniPlayerTopInset(float inset, int padding) {
+        default void setMiniPlayerTopPadding(int padding) {
 
         }
 
         default float getMiniPlayerTopAnchor() {
             return -1;
+        }
+
+        default float getMiniPlayerTopVisibility() {
+            return 1f;
         }
     }
 
@@ -1078,8 +1082,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         if (fragment instanceof TabFragmentDelegate) {
             ((TabFragmentDelegate) fragment).setParentTabsGlassInvalidationCallback(this::invalidateTabsGlass);
             if (miniPlayer != null) {
-                ((TabFragmentDelegate) fragment).setMiniPlayerInset(miniPlayer.getVisibleOffset(), miniPlayer.getTargetOffset());
-                ((TabFragmentDelegate) fragment).setMiniPlayerTopInset(miniPlayer.getVisibleTopOffset(), miniPlayer.getTargetTopOffset());
+                applyMiniPlayerInsets((TabFragmentDelegate) fragment, fragment instanceof DialogsActivity);
             }
         }
         return fragment;
@@ -1314,38 +1317,41 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         if (miniPlayer == null || viewPager == null) {
             return;
         }
-        final float position = viewPager.getPositionAnimated();
-        final int from = (int) Math.floor(position);
-        final int to = (int) Math.ceil(position);
-        final float fromAnchor = getMiniPlayerTopAnchor(from);
-        final float toAnchor = to == from ? fromAnchor : getMiniPlayerTopAnchor(to);
-        miniPlayer.setTopAnchor(lerp(fromAnchor, toAnchor, position - from));
+        final FragmentState state = fragmentsArr.get(getPositionChats());
+        final BaseFragment chats = state != null ? state.fragment : null;
+        final View view = chats != null ? chats.getFragmentView() : null;
+        final View page = view != null && view.getParent() instanceof View ? (View) view.getParent() : null;
+        float shift = 0f;
+        float zone = 0f;
+        if (page != null && page.getParent() == viewPager && page.getVisibility() == View.VISIBLE && viewPager.getMeasuredWidth() > 0) {
+            shift = page.getTranslationX();
+            zone = MathUtils.clamp(1f - Math.abs(shift) / viewPager.getMeasuredWidth(), 0f, 1f);
+        }
+        float anchor = -1;
+        float visibility = 1f;
+        if (chats instanceof TabFragmentDelegate) {
+            anchor = ((TabFragmentDelegate) chats).getMiniPlayerTopAnchor();
+            visibility = ((TabFragmentDelegate) chats).getMiniPlayerTopVisibility();
+        }
+        if (anchor < 0) {
+            anchor = AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight();
+        }
+        miniPlayer.setTopState(anchor, zone, shift, visibility);
     }
 
-    private float getMiniPlayerTopAnchor(int position) {
-        final FragmentState state = fragmentsArr.get(position);
-        if (state != null && state.fragment instanceof TabFragmentDelegate) {
-            final float anchor = ((TabFragmentDelegate) state.fragment).getMiniPlayerTopAnchor();
-            if (anchor >= 0) {
-                return anchor;
-            }
-        }
-        return AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight();
+    private void applyMiniPlayerInsets(TabFragmentDelegate delegate, boolean chats) {
+        delegate.setMiniPlayerInset(miniPlayer.getVisibleOffset(chats), miniPlayer.getTargetOffset(chats));
+        delegate.setMiniPlayerTopPadding(miniPlayer.getTargetTopOffset(chats));
     }
 
     private void onMiniPlayerOffsetChanged() {
         if (miniPlayer == null) {
             return;
         }
-        final float inset = miniPlayer.getVisibleOffset();
-        final int padding = miniPlayer.getTargetOffset();
-        final float topInset = miniPlayer.getVisibleTopOffset();
-        final int topPadding = miniPlayer.getTargetTopOffset();
         for (int a = 0, N = fragmentsArr.size(); a < N; a++) {
             final BaseFragment fragment = fragmentsArr.valueAt(a).fragment;
             if (fragment instanceof TabFragmentDelegate) {
-                ((TabFragmentDelegate) fragment).setMiniPlayerInset(inset, padding);
-                ((TabFragmentDelegate) fragment).setMiniPlayerTopInset(topInset, topPadding);
+                applyMiniPlayerInsets((TabFragmentDelegate) fragment, fragment instanceof DialogsActivity);
             }
         }
     }

@@ -9168,7 +9168,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private int miniPlayerTopPadding;
 
     @Override
-    public void setMiniPlayerTopInset(float inset, int padding) {
+    public void setMiniPlayerTopPadding(int padding) {
         if (miniPlayerTopPadding == padding) {
             return;
         }
@@ -9187,7 +9187,19 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (viewPages == null || viewPages[0] == null) {
             return -1;
         }
-        return viewPages[0].listView.topPadding - miniPlayerTopPadding + scrollYOffset;
+        return viewPages[0].listView.topPadding - miniPlayerTopPadding + scrollYOffset + storiesOverscroll + viewPages[0].getTranslationY();
+    }
+
+    @Override
+    public float getMiniPlayerTopVisibility() {
+        float visibility = 1f - Utilities.clamp01(searchAnimationProgress);
+        if (rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment()) {
+            visibility *= 1f - Utilities.clamp01(rightSlidingDialogContainer.openedProgress);
+        }
+        if (blurredView != null && blurredView.getVisibility() == View.VISIBLE && blurredView.getBackground() != null) {
+            visibility *= 1f - Utilities.clamp01(blurredView.getAlpha());
+        }
+        return visibility;
     }
 
     public void setMiniPlayerInset(float inset, int padding) {

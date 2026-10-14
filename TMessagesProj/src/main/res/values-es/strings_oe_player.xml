@@ -92,7 +92,7 @@
     <string name="OEPlayerMiniProgressBorder">Borde</string>
     <string name="OEPlayerMiniProgressNone">Ninguno</string>
     <string name="OEPlayerMiniColors">Colores</string>
-    <string name="OEPlayerMiniMoveHint">Mantén pulsado el minirreproductor y arrástralo hacia arriba o hacia abajo para moverlo</string>
+    <string name="OEPlayerMiniMoveHint">En la pestaña Chats, mantén pulsado el minirreproductor y arrástralo bajo la búsqueda o de vuelta abajo</string>
     <string name="OEPlayerMiniCompact">Compacto</string>
     <string name="OEPlayerMiniArtist">Mostrar artista</string>
     <string name="OEPlayerMiniPrevious">Botón «Anterior»</string>

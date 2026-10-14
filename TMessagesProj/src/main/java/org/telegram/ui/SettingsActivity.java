@@ -412,7 +412,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         listView = new UniversalRecyclerView(this, this::fillItems, this::onClick, this::onLongClick);
         listView.adapter.setApplyBackground(false);
         listView.setSections();
-        listView.setPadding(0, AndroidUtilities.statusBarHeight + dp(12) + miniPlayerTopPadding, 0, AndroidUtilities.navigationBarHeight + additionNavigationBarHeight + miniPlayerPadding);
+        listView.setPadding(0, AndroidUtilities.statusBarHeight + dp(12), 0, AndroidUtilities.navigationBarHeight + additionNavigationBarHeight + miniPlayerPadding);
         listView.setClipToPadding(false);
         listView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -1092,30 +1092,12 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     private WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
         final Insets systemInsets = AndroidUtilities.getDefaultWindowInsets(insets, false);
         navigationBarHeight = systemInsets.bottom;
-        statusBarInset = systemInsets.top;
-        listView.setPadding(0, statusBarInset + dp(12) + miniPlayerTopPadding, 0, navigationBarHeight + additionNavigationBarHeight + miniPlayerPadding);
+        final int statusBarHeight = systemInsets.top;
+        listView.setPadding(0, statusBarHeight + dp(12), 0, navigationBarHeight + additionNavigationBarHeight + miniPlayerPadding);
         return WindowInsetsCompat.CONSUMED;
     }
 
     private int miniPlayerPadding;
-    private int miniPlayerTopPadding;
-    private int statusBarInset = AndroidUtilities.statusBarHeight;
-
-    @Override
-    public void setMiniPlayerTopInset(float inset, int padding) {
-        if (miniPlayerTopPadding == padding) {
-            return;
-        }
-        miniPlayerTopPadding = padding;
-        if (listView != null) {
-            listView.setPadding(0, statusBarInset + dp(12) + miniPlayerTopPadding, 0, listView.getPaddingBottom());
-        }
-    }
-
-    @Override
-    public float getMiniPlayerTopAnchor() {
-        return statusBarInset;
-    }
 
     @Override
     public void setMiniPlayerInset(float inset, int padding) {
