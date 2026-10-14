@@ -28662,6 +28662,9 @@ public class ChatActivity extends BaseFragment implements
                 if (messageObject.type >= 0) {
                     messageObject.reactionsChanged |= old.isBotPendingDraft && !messageObject.isBotPendingDraft;
                     messageObject.copyStableParams(old);
+                    if (old.richLayout != null && messageObject.richLayout != null) {
+                        messageObject.richLayout.copyState(old.richLayout);
+                    }
                     messages.set(index, messageObject);
                     if (chatAdapter != null && !chatAdapter.isFiltered) {
                         chatAdapter.updateRowAtPosition(chatAdapter.messagesStartRow + index);
