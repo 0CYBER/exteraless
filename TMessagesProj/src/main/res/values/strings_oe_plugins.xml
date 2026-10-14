@@ -201,4 +201,9 @@ Source:
     <string name="OEPluginLinkEngineDisabled">Enable the **plugin engine** to open settings of **%1$s**.</string>
     <string name="OEPluginLinkNotFound">Plugin **%1$s** is not installed.</string>
     <string name="OEPluginLinkNoSettings">**%1$s** has no settings.</string>
+    <string name="PluginsExportAll">Export plugins</string>
+    <string name="PluginsImportAll">Import plugins</string>
+    <string name="PluginsImportConfirm">Install %1$d plugins from the backup and restore their settings? Permissions are not restored: grant them again where needed.</string>
+    <string name="PluginsImportDone">Imported plugins: %1$d of %2$d</string>
+    <string name="PluginsImportInvalid">This file is not a plugins backup</string>
 </resources>

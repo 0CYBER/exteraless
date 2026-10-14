@@ -187,4 +187,9 @@ Código:
     <string name="OEPluginLinkEngineDisabled">Activa el **motor de plugins** para abrir los ajustes de **%1$s**.</string>
     <string name="OEPluginLinkNotFound">El plugin **%1$s** no está instalado.</string>
     <string name="OEPluginLinkNoSettings">**%1$s** no tiene ajustes.</string>
+    <string name="PluginsExportAll">Exportar plugins</string>
+    <string name="PluginsImportAll">Importar plugins</string>
+    <string name="PluginsImportConfirm">¿Instalar %1$d plugins de la copia de seguridad y restaurar sus ajustes? Los permisos no se restauran: concédelos de nuevo donde haga falta.</string>
+    <string name="PluginsImportDone">Plugins importados: %1$d de %2$d</string>
+    <string name="PluginsImportInvalid">Este archivo no es una copia de seguridad de plugins</string>
 </resources>
