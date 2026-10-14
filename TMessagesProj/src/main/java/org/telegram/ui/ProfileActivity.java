@@ -3620,6 +3620,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         if (myProfile) {
             bottomButtonsContainer = new FrameLayout(context);
+            bottomButtonsContainer.setVisibility(View.INVISIBLE);
 
             bottomButtonContainer = new FrameLayout[2];
             bottomButton = new ButtonWithCounterView[2];
@@ -6381,7 +6382,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         } else {
             buttonsTranslationY = dp(72);
         }
-        animatorBottomButtonVisibility.setValue(buttonsTranslationY <= 0, true);
+        animatorBottomButtonVisibility.setValue(buttonsTranslationY <= 0, bottomButtonsContainer.isLaidOut());
 
         final float factor = animatorBottomButtonVisibility.getFloatValue();
         bottomButtonsContainer.setTranslationY(lerp(dp(60), 0, factor));
