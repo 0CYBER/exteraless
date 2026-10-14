@@ -30,6 +30,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
+import android.view.ViewTreeObserver;
 import android.view.animation.PathInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -202,6 +203,8 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     private boolean dragTracking;
     private boolean dragActive;
     private boolean coverAnimating;
+    private boolean morphUnderlay;
+    private boolean insetsReady;
     private final int touchSlop;
 
     public PlayerSheet(Context context, Theme.ResourcesProvider resourcesProvider) {
@@ -262,8 +265,20 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                     return;
                 }
                 drawMorphBackground(canvas);
-                super.dispatchDraw(canvas);
-                drawMorphForeground(canvas);
+                if (morphUnderlay) {
+                    drawMorphSnapshot(canvas);
+                    drawMorphBackdrop(canvas);
+                    drawMorphCover(canvas);
+                    super.dispatchDraw(canvas);
+                    canvas.restore();
+                } else {
+                    super.dispatchDraw(canvas);
+                    drawMorphSnapshot(canvas);
+                    canvas.restore();
+                    if (!backPreview) {
+                        drawMorphCover(canvas);
+                    }
+                }
             }
 
             @Override
@@ -572,6 +587,28 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         nc.addObserver(this, NotificationCenter.musicIdsLoaded);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.messagePlayingSpeedChanged);
         applySystemBars(true);
+        if (miniSource != null && startAnimationRunnable != null) {
+            root.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    Runnable start = startAnimationRunnable;
+                    if (start != null && !isDismissed() && (!insetsReady || root.getWidth() == 0)) {
+                        return true;
+                    }
+                    root.getViewTreeObserver().removeOnPreDrawListener(this);
+                    if (start != null && !isDismissed()) {
+                        AndroidUtilities.cancelRunOnUIThread(start);
+                        start.run();
+                    }
+                    return true;
+                }
+            });
+        }
+    }
+
+    @Override
+    protected void onInsetsChanged() {
+        insetsReady = true;
     }
 
     public void setTransitionSource(PlayerMiniView source) {
@@ -614,6 +651,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                 if (preview) {
                     backPreview = false;
                     morphCoverView.setVisibility(View.INVISIBLE);
+                    setMorphUnderlay(morphCoverView == cover && coverIsBackdrop());
                 }
                 startMorph(morphProgress, 0f, preview ? 380 : 300, this::finishMorphClose);
                 return;
@@ -847,7 +885,13 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         if (hideCover) {
             coverView.setVisibility(View.INVISIBLE);
         }
+        setMorphUnderlay(hideCover && coverView == cover && coverIsBackdrop());
+        seekBar.setFrozen(true);
+        if (spinAnimator != null) {
+            spinAnimator.pause();
+        }
         layout.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        layout.buildLayer();
         return true;
     }
 
@@ -884,8 +928,8 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         layout.setScaleX(s);
         layout.setScaleY(s);
         layout.setTranslationX(morphRect.left);
-        layout.setTranslationY(morphRect.top);
-        layout.setAlpha(clamp01((p - 0.08f) / 0.32f));
+        layout.setTranslationY(morphRect.bottom - layout.getHeight() * s);
+        layout.setAlpha(clamp01(p / 0.2f));
         backDrawable.setAlpha(dimBehind ? (int) (dimBehindAlpha * clamp01(p)) : 0);
         updateMorphBars();
         root.invalidate();
@@ -899,9 +943,27 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         layout.setTranslationY(0);
         layout.setAlpha(1f);
         layout.setLayerType(View.LAYER_TYPE_NONE, null);
+        setMorphUnderlay(false);
+        seekBar.setFrozen(false);
+        if (spinAnimator != null) {
+            spinAnimator.resume();
+        }
         recycleSnapshot();
         morphCoverBitmap = null;
         root.invalidate();
+    }
+
+    private boolean coverIsBackdrop() {
+        return coverStyle != PlayerStyle.COVER_CARD && coverStyle != PlayerStyle.COVER_DISC;
+    }
+
+    private void setMorphUnderlay(boolean value) {
+        if (morphUnderlay == value) {
+            return;
+        }
+        morphUnderlay = value;
+        coverScrim.setVisibility(value ? View.INVISIBLE : View.VISIBLE);
+        layout.invalidate();
     }
 
     private void recycleSnapshot() {
@@ -937,25 +999,43 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         canvas.drawRect(morphRect, backgroundPaint);
     }
 
-    private void drawMorphForeground(Canvas canvas) {
-        float p = morphProgress;
+    private void drawMorphSnapshot(Canvas canvas) {
         Bitmap snapshot = morphSnapshot;
-        if (snapshot != null && !snapshot.isRecycled()) {
-            float a = 1f - clamp01(p / 0.25f);
-            if (a > 0f) {
-                canvas.save();
-                float s = morphRect.width() / snapshot.getWidth();
-                canvas.translate(morphRect.left, morphRect.top);
-                canvas.scale(s, s);
-                morphPaint.setAlpha((int) (255 * a));
-                canvas.drawBitmap(snapshot, 0, 0, morphPaint);
-                canvas.restore();
-            }
-        }
-        canvas.restore();
-        if (backPreview) {
+        if (snapshot == null || snapshot.isRecycled()) {
             return;
         }
+        float a = 1f - clamp01(morphProgress / 0.2f);
+        if (a <= 0f) {
+            return;
+        }
+        canvas.save();
+        float s = morphRect.width() / snapshot.getWidth();
+        canvas.translate(morphRect.left, morphRect.bottom - snapshot.getHeight() * s);
+        canvas.scale(s, s);
+        morphPaint.setAlpha((int) (255 * a));
+        canvas.drawBitmap(snapshot, 0, 0, morphPaint);
+        canvas.restore();
+    }
+
+    private void drawMorphBackdrop(Canvas canvas) {
+        float alpha = layout.getAlpha();
+        if (alpha <= 0f || coverStyle == PlayerStyle.COVER_FULL || PlayerStyle.background() == PlayerStyle.BACKGROUND_SOLID) {
+            return;
+        }
+        int w = layout.getWidth();
+        int h = layout.getHeight();
+        int count = canvas.save();
+        canvas.translate(layout.getLeft() + layout.getTranslationX(), layout.getTop() + layout.getTranslationY());
+        canvas.scale(layout.getScaleX(), layout.getScaleY());
+        if (alpha < 1f) {
+            canvas.saveLayerAlpha(0, 0, w, h, (int) (255 * alpha));
+        }
+        drawBackdrop(canvas, w, h);
+        canvas.restoreToCount(count);
+    }
+
+    private void drawMorphCover(Canvas canvas) {
+        float p = morphProgress;
         lerpRect(morphCoverFrom, morphCoverTo, p, morphCover);
         float r = morphCoverFromRadius + (morphCoverToRadius - morphCoverFromRadius) * p;
         morphPath.rewind();
@@ -981,6 +1061,9 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         } else {
             backgroundPaint.setColor(colors.primaryContainer);
             canvas.drawRect(morphCover, backgroundPaint);
+        }
+        if (morphUnderlay) {
+            coverScrim.drawMorph(canvas, morphCover, clamp01(p));
         }
         canvas.restore();
     }
@@ -2113,6 +2196,23 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             if (w == 0 || h == 0) {
                 return;
             }
+            drawScrim(canvas, w, h, 1f);
+        }
+
+        void drawMorph(Canvas canvas, RectF bounds, float alpha) {
+            int w = getWidth();
+            int h = getHeight();
+            if (w == 0 || h == 0 || alpha <= 0f) {
+                return;
+            }
+            canvas.save();
+            canvas.translate(bounds.left, bounds.top);
+            canvas.scale(bounds.width() / w, bounds.height() / h);
+            drawScrim(canvas, w, h, alpha);
+            canvas.restore();
+        }
+
+        private void drawScrim(Canvas canvas, int w, int h, float alpha) {
             int surface = colors.surface;
             boolean full = coverStyle == PlayerStyle.COVER_FULL;
             int key = (surface * 31 + h) * 31 + (full ? 1 : 0);
@@ -2136,11 +2236,11 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                 }
             }
             paint.setShader(gradient);
-            paint.setAlpha(255);
+            paint.setAlpha((int) (255 * alpha));
             canvas.drawRect(0, 0, w, h, paint);
             if (full && lyricsFraction > 0f) {
                 paint.setShader(null);
-                paint.setColor(ColorUtils.setAlphaComponent(surface, (int) (0xb8 * lyricsFraction)));
+                paint.setColor(ColorUtils.setAlphaComponent(surface, (int) (0xb8 * lyricsFraction * alpha)));
                 canvas.drawRect(0, 0, w, h, paint);
             }
         }
@@ -2216,7 +2316,9 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                 overlayPaint.setColor(colors.surface);
                 canvas.drawRect(previewRect, overlayPaint);
             }
-            drawBackdrop(canvas, w, h);
+            if (!morphUnderlay) {
+                drawBackdrop(canvas, w, h);
+            }
             super.dispatchDraw(canvas);
             if (clip) {
                 canvas.restore();
