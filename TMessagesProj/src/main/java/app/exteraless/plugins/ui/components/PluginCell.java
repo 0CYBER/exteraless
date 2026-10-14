@@ -268,10 +268,10 @@ public class PluginCell extends FrameLayout implements NotificationCenter.Notifi
         settingsButton = createButton(context, R.drawable.msg_settings, false,
                 v -> callDelegate(Action.SETTINGS));
         settingsButton.setOnLongClickListener(v -> {
-            if (delegate == null || pluginId == null) {
+            if (!(delegate instanceof PluginSettingsLinkDelegate) || pluginId == null) {
                 return false;
             }
-            delegate.copyPluginSettingsLink();
+            ((PluginSettingsLinkDelegate) delegate).copyPluginSettingsLink();
             return true;
         });
         settingsButton.setOnTouchListener(new LongPressTouch());

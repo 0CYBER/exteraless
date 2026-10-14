@@ -14,9 +14,6 @@ public interface PluginCellDelegate {
 
     void openPluginSettings();
 
-    default void copyPluginSettingsLink() {
-    }
-
     void pinPlugin(View view);
 
     boolean canOpenInExternalApp();

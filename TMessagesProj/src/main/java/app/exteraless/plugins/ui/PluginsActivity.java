@@ -48,6 +48,7 @@ import app.exteraless.plugins.PluginsWatchdog;
 import app.exteraless.plugins.ui.components.PluginCell;
 import app.exteraless.plugins.ui.components.PluginCellDelegate;
 import app.exteraless.plugins.ui.components.PluginPermissionsDelegate;
+import app.exteraless.plugins.ui.components.PluginSettingsLinkDelegate;
 
 /**
  * Экран «Plugins». Порт
@@ -346,7 +347,7 @@ public class PluginsActivity extends BaseFragment {
      * Кнопки под описанием плагина. Раньше всё это жило в меню по долгому
      * нажатию: пункт, о существовании которого нельзя догадаться.
      */
-    private final class PluginRowDelegate implements PluginCellDelegate, PluginPermissionsDelegate {
+    private final class PluginRowDelegate implements PluginCellDelegate, PluginPermissionsDelegate, PluginSettingsLinkDelegate {
 
         private final Plugin plugin;
 
