@@ -3113,6 +3113,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         if (push_msg_id == 0) {
                             push_msg_id = intent.getIntExtra("message_id", 0);
                         }
+                        dismissPlayerSheets();
                         if (storyId != -1) {
                             NotificationCenter.getInstance(intentAccount[0]).postNotificationName(NotificationCenter.closeChats);
                             push_chat_id = chatId;
@@ -9347,6 +9348,15 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 lastFragment.getOrCreateStoryViewer().instantClose();
                 lastFragment.getOrCreateStoryViewer().open(this, null, peerIds, 0, null, null, placeProvider, false);
             }
+        }
+    }
+
+    private static void dismissPlayerSheets() {
+        if (app.exteraless.player.PlayerSheet.instance != null) {
+            app.exteraless.player.PlayerSheet.instance.dismissImmediately();
+        }
+        if (AudioPlayerAlert.instance != null) {
+            AudioPlayerAlert.instance.dismiss();
         }
     }
 
