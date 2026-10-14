@@ -28677,6 +28677,14 @@ public class ChatActivity extends BaseFragment implements
                         messageObject.richLayout.copyState(old.richLayout);
                     }
                     messages.set(index, messageObject);
+                    if (old != messageObject && (editingMessageObject == old || chatActivityEnterView != null && chatActivityEnterView.editingMessageObject == old)) {
+                        if (editingMessageObject == old) {
+                            editingMessageObject = messageObject;
+                        }
+                        if (chatActivityEnterView != null && chatActivityEnterView.editingMessageObject == old) {
+                            chatActivityEnterView.editingMessageObject = messageObject;
+                        }
+                    }
                     if (chatAdapter != null && !chatAdapter.isFiltered) {
                         chatAdapter.updateRowAtPosition(chatAdapter.messagesStartRow + index);
                     }

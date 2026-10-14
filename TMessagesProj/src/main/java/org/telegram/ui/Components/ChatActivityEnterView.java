@@ -720,7 +720,7 @@ public class ChatActivityEnterView extends FrameLayout implements
 
     private boolean destroyed;
 
-    private MessageObject editingMessageObject;
+    public MessageObject editingMessageObject;
     private app.exteraless.chats.DeletedReplyQuote.Prefix editingQuotePrefix;
     private boolean editingCaption;
 
