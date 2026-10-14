@@ -2252,29 +2252,15 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             return sum;
         }
 
-        private int lastBlock() {
-            for (int i = blockOrder.length - 1; i >= 0; i--) {
-                if (visible(blockOrder[i])) {
-                    return blockOrder[i];
-                }
-            }
-            return -1;
-        }
-
-        private void placeLower(int startY, int bottomY) {
-            int last = lastBlock();
+        private void placeLower(int startY) {
             int y = startY;
             for (int block : blockOrder) {
                 if (!visible(block)) {
                     continue;
                 }
-                if (block == last) {
-                    blockY[block] = Math.max(y + gapBefore(block), bottomY - heightOf(block));
-                } else {
-                    y += gapBefore(block);
-                    blockY[block] = y;
-                    y += heightOf(block);
-                }
+                y += gapBefore(block);
+                blockY[block] = y;
+                y += heightOf(block);
             }
         }
 
@@ -2306,13 +2292,13 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                 return;
             }
             if (style == PlayerStyle.COVER_WIDE) {
-                int maxH = bottomY - lower - titleH - dp(20);
-                int coverH = Math.max(Math.min(width, dp(180)), Math.min(width, maxH));
+                int maxH = bottomY - lower - titleH - dp(4);
+                int coverH = Math.max(Math.min(width, dp(180)), Math.min(width * 6 / 5, maxH));
                 coverRect.set(0, 0, width, coverH);
-                titleY = coverH + dp(4);
+                titleY = Math.max(coverH + dp(4), bottomY - lower - titleH);
                 stageTop = headerBottom;
                 stageHeight = Math.max(0, titleY + titleH - headerBottom);
-                placeLower(titleY + titleH, bottomY);
+                placeLower(titleY + titleH);
                 return;
             }
             int available = bottomY - headerBottom - lower;
@@ -2320,8 +2306,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             int size = Math.max(dp(96), Math.min(Math.round(contentW * PlayerStyle.coverSize()), coverAvail));
             stageHeight = dp(16) + size + dp(26) + titleH;
             int free = available - stageHeight;
-            int extraTop = lastBlock() != PlayerStyle.BLOCK_ACTIONS && free > 0 ? free / 2 : 0;
-            stageTop = headerBottom + extraTop;
+            stageTop = headerBottom + Math.max(0, free / 2);
             int coverTop;
             if (PlayerStyle.titleAbove()) {
                 titleY = stageTop + dp(16);
@@ -2332,7 +2317,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             }
             int coverLeft = (width - size) / 2;
             coverRect.set(coverLeft, coverTop, coverLeft + size, coverTop + size);
-            placeLower(stageTop + stageHeight, bottomY);
+            placeLower(Math.max(stageTop + stageHeight, bottomY - lower));
         }
 
         @Override
