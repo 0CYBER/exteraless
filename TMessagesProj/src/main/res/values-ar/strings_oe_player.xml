@@ -88,6 +88,7 @@
     <string name="OEPlayerMiniProgress">التقدّم</string>
     <string name="OEPlayerMiniProgressRing">حلقة</string>
     <string name="OEPlayerMiniProgressLine">شريط</string>
+    <string name="OEPlayerMiniProgressBorder">إطار</string>
     <string name="OEPlayerMiniProgressNone">بلا</string>
     <string name="OEPlayerMiniColors">الألوان</string>
     <string name="OEPlayerMiniCompact">مضغوط</string>

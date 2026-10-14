@@ -88,6 +88,7 @@
     <string name="OEPlayerMiniProgress">进度</string>
     <string name="OEPlayerMiniProgressRing">圆环</string>
     <string name="OEPlayerMiniProgressLine">进度条</string>
+    <string name="OEPlayerMiniProgressBorder">边框</string>
     <string name="OEPlayerMiniProgressNone">无</string>
     <string name="OEPlayerMiniColors">颜色</string>
     <string name="OEPlayerMiniCompact">紧凑</string>

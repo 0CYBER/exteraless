@@ -88,6 +88,7 @@
     <string name="OEPlayerMiniProgress">Прогресс</string>
     <string name="OEPlayerMiniProgressRing">Кольцо</string>
     <string name="OEPlayerMiniProgressLine">Полоса</string>
+    <string name="OEPlayerMiniProgressBorder">Контур</string>
     <string name="OEPlayerMiniProgressNone">Нет</string>
     <string name="OEPlayerMiniColors">Цвета</string>
     <string name="OEPlayerMiniCompact">Компактный</string>

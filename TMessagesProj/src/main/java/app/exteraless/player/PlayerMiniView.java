@@ -9,10 +9,16 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Outline;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.TextUtils;
+import android.text.style.CharacterStyle;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -37,13 +43,14 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.TypefaceSpan;
 
 import java.util.ArrayList;
 
 public class PlayerMiniView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 
     public static final int HEIGHT_DP = 64;
-    private static final int COMPACT_HEIGHT_DP = 56;
+    private static final int COMPACT_HEIGHT_DP = 52;
     private static final ArrayList<PlayerMiniView> attachedViews = new ArrayList<>();
 
     private final BaseFragment fragment;
@@ -73,6 +80,20 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     private int coverRadius = dp(12);
     private int progressStyle;
     private float drawnLineProgress = -1f;
+    private final Path borderPath = new Path();
+    private final Path borderSegment = new Path();
+    private final PathMeasure borderMeasure = new PathMeasure();
+    private final RectF borderRect = new RectF();
+    private int borderKey;
+    private float borderLength;
+    private CharSequence titleText;
+    private CharSequence artistText;
+    private final CharacterStyle artistSpan = new CharacterStyle() {
+        @Override
+        public void updateDrawState(TextPaint tp) {
+            tp.setColor(ColorUtils.setAlphaComponent(colors.onPrimaryContainer, 0xcc));
+        }
+    };
     private MessageObject current;
     private boolean shown;
     private float showProgress;
@@ -197,7 +218,7 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     public void applyStyle(boolean animated) {
         boolean compact = PlayerStyle.miniCompact();
         int height = compact ? COMPACT_HEIGHT_DP : HEIGHT_DP;
-        int coverSize = compact ? 40 : 44;
+        int coverSize = compact ? 36 : 44;
         int coverMode = PlayerStyle.miniCover();
         int shape = PlayerStyle.miniShape();
         boolean heightChanged = height != heightDp;
@@ -229,7 +250,8 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
             texts.setLayoutParams(textParams);
         }
 
-        artistView.setVisibility(PlayerStyle.miniArtist() ? VISIBLE : GONE);
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, compact ? 14 : 15);
+        bindTexts();
         prevButton.setVisibility(PlayerStyle.miniPrevious() ? VISIBLE : GONE);
         nextButton.setVisibility(PlayerStyle.miniNext() ? VISIBLE : GONE);
         closeButton.setVisibility(PlayerStyle.miniClose() ? VISIBLE : GONE);
@@ -286,13 +308,39 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
         colorAnimator.start();
     }
 
+    private void bindTexts() {
+        CharSequence title = titleText != null ? titleText : "";
+        boolean showArtist = PlayerStyle.miniArtist() && !TextUtils.isEmpty(artistText);
+        if (PlayerStyle.miniCompact()) {
+            SpannableStringBuilder text = new SpannableStringBuilder(title);
+            text.setSpan(new TypefaceSpan(AndroidUtilities.bold()), 0, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            if (showArtist) {
+                int start = text.length();
+                text.append(" · ").append(artistText);
+                text.setSpan(artistSpan, start, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            titleView.setTypeface(null);
+            titleView.setText(text);
+            artistView.setVisibility(GONE);
+        } else {
+            titleView.setTypeface(AndroidUtilities.bold());
+            titleView.setText(title);
+            artistView.setText(artistText);
+            artistView.setVisibility(showArtist ? VISIBLE : GONE);
+        }
+    }
+
     private void drawProgressLine(Canvas canvas, int w, int h) {
-        if (progressStyle != PlayerStyle.MINI_PROGRESS_LINE) {
+        if (progressStyle != PlayerStyle.MINI_PROGRESS_LINE && progressStyle != PlayerStyle.MINI_PROGRESS_BORDER) {
             return;
         }
         MessageObject mo = current;
         float progress = mo != null ? Utilities.clamp01(mo.audioProgress) : preview ? 0.36f : 0f;
         drawnLineProgress = progress;
+        if (progressStyle == PlayerStyle.MINI_PROGRESS_BORDER) {
+            drawProgressBorder(canvas, w, h, progress);
+            return;
+        }
         float inset = Math.max(dp(16), cardRadius);
         float y = h - dp(4);
         float right = w - inset;
@@ -304,13 +352,57 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
         }
     }
 
+    private void drawProgressBorder(Canvas canvas, int w, int h, float progress) {
+        float inset = dp(3) / 2f;
+        int key = (w * 31 + h) * 31 + Float.floatToIntBits(cardRadius);
+        if (key != borderKey) {
+            borderKey = key;
+            buildBorderPath(w, h, inset, Math.max(dp(2), cardRadius - inset));
+            borderMeasure.setPath(borderPath, false);
+            borderLength = borderMeasure.getLength();
+        }
+        linePaint.setColor(ColorUtils.setAlphaComponent(colors.onPrimaryContainer, 46));
+        canvas.drawPath(borderPath, linePaint);
+        if (progress > 0f) {
+            borderSegment.rewind();
+            borderMeasure.getSegment(0, borderLength * progress, borderSegment, true);
+            linePaint.setColor(colors.onPrimaryContainer);
+            canvas.drawPath(borderSegment, linePaint);
+        }
+    }
+
+    private void buildBorderPath(int w, int h, float inset, float radius) {
+        float left = inset;
+        float top = inset;
+        float right = w - inset;
+        float bottom = h - inset;
+        float r = Math.min(radius, Math.min(right - left, bottom - top) / 2f);
+        float cx = w / 2f;
+        borderPath.rewind();
+        borderPath.moveTo(cx, top);
+        borderPath.lineTo(right - r, top);
+        borderRect.set(right - 2 * r, top, right, top + 2 * r);
+        borderPath.arcTo(borderRect, -90, 90, false);
+        borderPath.lineTo(right, bottom - r);
+        borderRect.set(right - 2 * r, bottom - 2 * r, right, bottom);
+        borderPath.arcTo(borderRect, 0, 90, false);
+        borderPath.lineTo(left + r, bottom);
+        borderRect.set(left, bottom - 2 * r, left + 2 * r, bottom);
+        borderPath.arcTo(borderRect, 90, 90, false);
+        borderPath.lineTo(left, top + r);
+        borderRect.set(left, top, left + 2 * r, top + 2 * r);
+        borderPath.arcTo(borderRect, 180, 90, false);
+        borderPath.lineTo(cx, top);
+    }
+
     private void lineProgressChanged() {
         MessageObject mo = current;
-        if (progressStyle != PlayerStyle.MINI_PROGRESS_LINE || mo == null) {
+        if (mo == null || progressStyle != PlayerStyle.MINI_PROGRESS_LINE && progressStyle != PlayerStyle.MINI_PROGRESS_BORDER) {
             return;
         }
         float progress = Utilities.clamp01(mo.audioProgress);
-        if (Math.abs(progress - drawnLineProgress) * card.getWidth() >= 1f) {
+        float length = progressStyle == PlayerStyle.MINI_PROGRESS_BORDER ? borderLength : card.getWidth();
+        if (Math.abs(progress - drawnLineProgress) * length >= 1f) {
             card.invalidate();
         }
     }
@@ -490,8 +582,9 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
             bind(mo);
         } else {
             current = null;
-            titleView.setText(getString(R.string.OEPlayerPreviewTitle));
-            artistView.setText(getString(R.string.OEPlayerPreviewArtist));
+            titleText = getString(R.string.OEPlayerPreviewTitle);
+            artistText = getString(R.string.OEPlayerPreviewArtist);
+            bindTexts();
             cover.setMessage(null);
             playButton.setMessage(null);
         }
@@ -516,8 +609,9 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     private void bind(MessageObject mo) {
         boolean changed = current != mo;
         current = mo;
-        titleView.setText(mo.getMusicTitle());
-        artistView.setText(mo.getMusicAuthor());
+        titleText = mo.getMusicTitle();
+        artistText = mo.getMusicAuthor();
+        bindTexts();
         cover.setMessage(mo);
         playButton.setMessage(mo);
         playButton.setContentDescription(getString(MediaController.getInstance().isMessagePaused() ? R.string.AccActionPlay : R.string.AccActionPause));

@@ -88,6 +88,7 @@
     <string name="OEPlayerMiniProgress">Progress</string>
     <string name="OEPlayerMiniProgressRing">Ring</string>
     <string name="OEPlayerMiniProgressLine">Line</string>
+    <string name="OEPlayerMiniProgressBorder">Border</string>
     <string name="OEPlayerMiniProgressNone">None</string>
     <string name="OEPlayerMiniColors">Colors</string>
     <string name="OEPlayerMiniCompact">Compact</string>

@@ -127,8 +127,13 @@ public class PlayerStyleEditor extends LinearLayout {
         }, PlayerStyle::miniShape, value -> AppearanceConfig.playerMiniShape.setConfigInt(value));
         addInfo(R.string.OEPlayerMiniProgress);
         addSegmented(new String[]{
-                getString(R.string.OEPlayerMiniProgressRing), getString(R.string.OEPlayerMiniProgressLine), getString(R.string.OEPlayerMiniProgressNone)
-        }, PlayerStyle::miniProgress, value -> AppearanceConfig.playerMiniProgress.setConfigInt(value));
+                getString(R.string.OEPlayerMiniProgressRing), getString(R.string.OEPlayerMiniProgressLine),
+                getString(R.string.OEPlayerMiniProgressBorder), getString(R.string.OEPlayerMiniProgressNone)
+        }, () -> {
+            int value = PlayerStyle.miniProgress();
+            return value == PlayerStyle.MINI_PROGRESS_BORDER ? 2 : value == PlayerStyle.MINI_PROGRESS_NONE ? 3 : value;
+        }, value -> AppearanceConfig.playerMiniProgress.setConfigInt(
+                value == 2 ? PlayerStyle.MINI_PROGRESS_BORDER : value == 3 ? PlayerStyle.MINI_PROGRESS_NONE : value));
         addInfo(R.string.OEPlayerMiniColors);
         addSegmented(new String[]{getString(R.string.OEPlayerColorsCover), getString(R.string.OEPlayerColorsTheme)},
                 () -> PlayerStyle.miniThemeColors() ? 1 : 0, value -> AppearanceConfig.playerMiniColors.setConfigInt(value));

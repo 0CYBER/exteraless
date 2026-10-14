@@ -37,6 +37,7 @@ public final class PlayerStyle {
     public static final int MINI_PROGRESS_RING = 0;
     public static final int MINI_PROGRESS_LINE = 1;
     public static final int MINI_PROGRESS_NONE = 2;
+    public static final int MINI_PROGRESS_BORDER = 3;
 
     public static final int COVER_SIZE_MIN = 60;
     public static final int COVER_SIZE_MAX = 100;
@@ -182,7 +183,7 @@ public final class PlayerStyle {
     }
 
     public static int miniProgress() {
-        return choice(AppearanceConfig.playerMiniProgress, MINI_PROGRESS_NONE);
+        return choice(AppearanceConfig.playerMiniProgress, MINI_PROGRESS_BORDER);
     }
 
     public static boolean miniThemeColors() {
