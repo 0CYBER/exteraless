@@ -448,7 +448,7 @@ public class NotificationCenter {
 
     private int currentAccount;
     private int currentHeavyOperationFlags;
-    private static volatile NotificationCenter[] Instance = new NotificationCenter[UserConfig.MAX_ACCOUNT_COUNT];
+    private static volatile NotificationCenter[] Instance = new NotificationCenter[UserConfig.MAX_INSTANCE_COUNT];
     private static volatile NotificationCenter globalInstance;
 
     @UiThread
