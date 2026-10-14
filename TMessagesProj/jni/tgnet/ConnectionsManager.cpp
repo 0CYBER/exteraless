@@ -259,10 +259,11 @@ void ConnectionsManager::select() {
 
     if (lastPauseTime != 0 && llabs(now - lastPauseTime) >= nextSleepTimeout) {
         bool dontSleep = !requestingSaltsForDc.empty();
+        bool keepForGeneric = backgroundPauseTime != 0 && llabs(now - backgroundPauseTime) < CONNECTION_BACKGROUND_PENDING_KEEP_TIME;
         if (!dontSleep) {
             for (auto & runningRequest : runningRequests) {
                 Request *request = runningRequest.get();
-                if (request->connectionType & ConnectionTypeDownload || request->connectionType & ConnectionTypeUpload) {
+                if (request->connectionType & ConnectionTypeDownload || request->connectionType & ConnectionTypeUpload || (keepForGeneric && request->connectionType & ConnectionTypeGeneric && !request->cancelled)) {
                     dontSleep = true;
                     break;
                 }
@@ -271,7 +272,7 @@ void ConnectionsManager::select() {
         if (!dontSleep) {
             for (auto & iter : requestsQueue) {
                 Request *request = iter.get();
-                if (request->connectionType & ConnectionTypeDownload || request->connectionType & ConnectionTypeUpload) {
+                if (request->connectionType & ConnectionTypeDownload || request->connectionType & ConnectionTypeUpload || (keepForGeneric && request->connectionType & ConnectionTypeGeneric && !request->cancelled)) {
                     dontSleep = true;
                     break;
                 }
@@ -288,7 +289,7 @@ void ConnectionsManager::select() {
             return;
         } else {
             lastPauseTime = now;
-            if (LOGS_ENABLED) DEBUG_D("don't sleep because of salt, upload or download request");
+            if (LOGS_ENABLED) DEBUG_D("don't sleep because of salt, upload, download or pending generic request");
         }
     }
     if (networkPaused) {
@@ -3873,6 +3874,7 @@ void ConnectionsManager::resumeNetwork(bool partial) {
         } else {
             lastPauseTime = 0;
             lastMonotonicPauseTime = 0;
+            backgroundPauseTime = 0;
             lastSystemPauseTime = 0;
             networkPaused = false;
             if (LOGS_ENABLED) DEBUG_D("wakeup network account%u", instanceNum);
@@ -3893,7 +3895,7 @@ void ConnectionsManager::pauseNetwork() {
     if (lastPauseTime != 0) {
         return;
     }
-    lastMonotonicPauseTime = lastPauseTime = getCurrentTimeMonotonicMillis();
+    backgroundPauseTime = lastMonotonicPauseTime = lastPauseTime = getCurrentTimeMonotonicMillis();
     lastSystemPauseTime = getCurrentTime();
     saveConfig();
 }
