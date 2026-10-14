@@ -884,7 +884,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         layout.setScaleY(s);
         layout.setTranslationX(morphRect.left);
         layout.setTranslationY(morphRect.top);
-        layout.setAlpha(clamp01((p - 0.35f) / 0.65f));
+        layout.setAlpha(clamp01((p - 0.08f) / 0.32f));
         backDrawable.setAlpha(dimBehind ? (int) (dimBehindAlpha * clamp01(p)) : 0);
         updateMorphBars();
         root.invalidate();
@@ -940,7 +940,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         float p = morphProgress;
         Bitmap snapshot = morphSnapshot;
         if (snapshot != null && !snapshot.isRecycled()) {
-            float a = 1f - clamp01(p / 0.3f);
+            float a = 1f - clamp01(p / 0.25f);
             if (a > 0f) {
                 canvas.save();
                 float s = morphRect.width() / snapshot.getWidth();
@@ -2077,6 +2077,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                         null, Shader.TileMode.CLAMP);
             }
             overlayPaint.setShader(backgroundGradient);
+            overlayPaint.setAlpha(255);
             canvas.drawRect(0, 0, width, height * 0.7f, overlayPaint);
             overlayPaint.setShader(null);
         }
@@ -2122,6 +2123,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                 }
             }
             paint.setShader(gradient);
+            paint.setAlpha(255);
             canvas.drawRect(0, 0, w, h, paint);
             if (full && lyricsFraction > 0f) {
                 paint.setShader(null);
