@@ -53,6 +53,7 @@
     <string name="OEChatsReplaceEditedWithIcon">用图标替换「%1$s」</string>
     <string name="OEChatsShowOnlineStatus">显示在线标识</string>
     <string name="OEChatsHideShareButton">隐藏侧边「%1$s」按钮</string>
+    <string name="OEChatsHideMoneyButton">在附件菜单中隐藏「%1$s」</string>
     <string name="OEChatsShowResultsBeforeVoting">投票前查看结果</string>
     <string name="OEChatsShowResultsBeforeVotingInfo">无需投票即可查看公开投票的结果。</string>
     <string name="OEChatsHideReactions">隐藏回应</string>

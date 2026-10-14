@@ -63,6 +63,7 @@
     <string name="OEChatsHideGiftButton">Скрыть кнопку подарков в каналах</string>
     <string name="OEChatsHideSearchButton">Скрыть кнопку поиска в каналах</string>
     <string name="OEChatsHideCallButton">Скрыть кнопку звонка</string>
+    <string name="OEChatsHideMoneyButton">Скрыть «%1$s» в меню вложений</string>
     <string name="OEChatsShowResultsBeforeVoting">Показывать результаты до голосования</string>
     <string name="OEChatsHideReactions">Скрывать реакции</string>
     <string name="OEChatsHideReactionsChannels">Каналы</string>

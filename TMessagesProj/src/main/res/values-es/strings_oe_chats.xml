@@ -53,6 +53,7 @@
     <string name="OEChatsReplaceEditedWithIcon">Sustituir «%1$s» por un icono</string>
     <string name="OEChatsShowOnlineStatus">Mostrar el indicador de conexión</string>
     <string name="OEChatsHideShareButton">Ocultar el botón lateral «%1$s»</string>
+    <string name="OEChatsHideMoneyButton">Ocultar «%1$s» en el menú de adjuntos</string>
     <string name="OEChatsShowResultsBeforeVoting">Ver resultados antes de votar</string>
     <string name="OEChatsShowResultsBeforeVotingInfo">Los resultados de las encuestas públicas se verán sin necesidad de votar.</string>
     <string name="OEChatsHideReactions">Ocultar reacciones</string>

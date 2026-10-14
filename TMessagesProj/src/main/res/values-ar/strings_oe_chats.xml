@@ -55,6 +55,7 @@
     <string name="OEChatsHideShareButton">إخفاء زر «%1$s» الجانبي</string>
     <string name="OEChatsHideGiftButton">إخفاء زر الهدايا في القنوات</string>
     <string name="OEChatsHideSearchButton">إخفاء زر البحث في القنوات</string>
+    <string name="OEChatsHideMoneyButton">إخفاء «%1$s» في قائمة المرفقات</string>
     <string name="OEChatsShowResultsBeforeVoting">إظهار النتائج قبل التصويت</string>
     <string name="OEChatsShowResultsBeforeVotingInfo">ستكون نتائج الاستطلاعات العامة مرئية دون الإدلاء بصوت.</string>
     <string name="OEChatsHideReactions">إخفاء التفاعلات</string>

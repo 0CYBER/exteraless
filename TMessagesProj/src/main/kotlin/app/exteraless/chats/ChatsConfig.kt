@@ -206,6 +206,9 @@ object ChatsConfig {
     val hideCallButton = addConfig("OEChatsHideCallButton", ConfigItem.configTypeBool, false)
 
     @JvmField
+    val hideMoneyButton = addConfig("OEChatsHideMoneyButton", ConfigItem.configTypeBool, false)
+
+    @JvmField
     val translateInSheet = addConfig("OEChatsTranslateInSheet", ConfigItem.configTypeBool, false)
 
     @JvmField

@@ -204,6 +204,7 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
     private int hideGiftButtonRow = -1;
     private int hideSearchButtonRow = -1;
     private int hideCallButtonRow = -1;
+    private int hideMoneyButtonRow = -1;
     private int showResultsBeforeVotingRow = -1;
     private int dateOfForwardedMsgRow = -1;
     private int showTimeHintRow = -1;
@@ -735,6 +736,7 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
         hideGiftButtonRow = addRow("hideGiftButton");
         hideSearchButtonRow = addRow("hideSearchButton");
         hideCallButtonRow = addRow("hideCallButton");
+        hideMoneyButtonRow = addRow("hideMoneyButton");
         hideReactionsGroupRow = addRow("hideReactions");
         if (hideReactionsExpanded) {
             hideReactionsChannelsRow = addRow();
@@ -2100,6 +2102,7 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
         if (position == hideGiftButtonRow) return NaConfig.INSTANCE.getHideGiftButtonInChannel();
         if (position == hideSearchButtonRow) return ChatsConfig.hideChannelSearchButton;
         if (position == hideCallButtonRow) return ChatsConfig.hideCallButton;
+        if (position == hideMoneyButtonRow) return ChatsConfig.hideMoneyButton;
         if (position == showResultsBeforeVotingRow) return ChatsConfig.showResultsBeforeVoting;
         if (position == menuCopyPhotoRow) return NaConfig.INSTANCE.getShowCopyPhoto();
         if (position == menuSaveRow) return NekoConfig.showAddToSavedMessages;
@@ -2832,6 +2835,9 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
             } else if (position == hideCallButtonRow) {
                 cell.setTextAndCheck(getString(R.string.OEChatsHideCallButton),
                         ChatsConfig.hideCallButton.Bool(), true);
+            } else if (position == hideMoneyButtonRow) {
+                cell.setTextAndCheck(LocaleController.formatString(R.string.OEChatsHideMoneyButton,
+                        getString(R.string.WalletAttachMoney)), ChatsConfig.hideMoneyButton.Bool(), true);
             } else if (position == showResultsBeforeVotingRow) {
                 cell.setTextAndValueAndCheck(getString(R.string.OEChatsShowResultsBeforeVoting),
                         getString(R.string.OEChatsShowResultsBeforeVotingInfo),
