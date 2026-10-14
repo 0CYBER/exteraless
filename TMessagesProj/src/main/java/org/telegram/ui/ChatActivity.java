@@ -44282,6 +44282,19 @@ public class ChatActivity extends BaseFragment implements
         }
 
         @Override
+        public boolean didPressDeletedReplyQuote(ChatMessageCell cell, MessageObject messageObject) {
+            if (!canPerformActions() || actionBar.isActionModeShowed() || chatMode == MODE_SCHEDULED) {
+                return false;
+            }
+            int originalId = DeletedReplyQuote.findOriginal(currentAccount, messageObject);
+            if (originalId == 0) {
+                return false;
+            }
+            scrollToMessageId(originalId, messageObject.getId(), true, 0, true, 0);
+            return true;
+        }
+
+        @Override
         public void didPressReplyMessage(ChatMessageCell cell, int id, float x, float y, boolean longpress) {
             if (!canPerformActions()) {
                 if (!longpress) {

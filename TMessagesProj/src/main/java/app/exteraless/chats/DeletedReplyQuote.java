@@ -1,8 +1,13 @@
 package app.exteraless.chats;
 
+import android.net.Uri;
 import android.text.TextUtils;
 
+import com.radolyn.ayugram.AyuConstants;
+import com.radolyn.ayugram.database.entities.DeletedMessage;
+import com.radolyn.ayugram.database.entities.DeletedMessageFull;
 import com.radolyn.ayugram.messages.AyuMessagesController;
+import com.radolyn.ayugram.proprietary.AyuHistoryHook;
 
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.MessageObject;
@@ -11,11 +16,13 @@ import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.SerializedData;
+import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import xyz.nextalone.nagram.NaConfig;
 
@@ -173,6 +180,84 @@ public final class DeletedReplyQuote {
             return 0;
         }
         return quote.length;
+    }
+
+    public static int findOriginal(int currentAccount, MessageObject messageObject) {
+        int length = quoteLength(messageObject);
+        if (length <= 0) {
+            return 0;
+        }
+        TLRPC.Message message = messageObject.messageOwner;
+        int header = message.message.indexOf('\n');
+        String body = message.message.substring(header + 1, length).trim();
+        long author = 0;
+        int postId = 0;
+        MessagesController controller = MessagesController.getInstance(currentAccount);
+        for (TLRPC.MessageEntity entity : message.entities) {
+            if (entity.offset != 0 || entity.length != header) {
+                continue;
+            }
+            if (entity instanceof TLRPC.TL_messageEntityMentionName) {
+                author = ((TLRPC.TL_messageEntityMentionName) entity).user_id;
+            } else if (entity instanceof TLRPC.TL_inputMessageEntityMentionName && ((TLRPC.TL_inputMessageEntityMentionName) entity).user_id != null) {
+                author = ((TLRPC.TL_inputMessageEntityMentionName) entity).user_id.user_id;
+            } else if (entity instanceof TLRPC.TL_messageEntityTextUrl && entity.url != null) {
+                Uri uri = Uri.parse(entity.url);
+                if ("privatepost".equals(uri.getHost())) {
+                    author = -parseLong(uri.getQueryParameter("channel"));
+                    postId = (int) parseLong(uri.getQueryParameter("post"));
+                } else if ("resolve".equals(uri.getHost())) {
+                    TLObject peer = controller.getUserOrChat(uri.getQueryParameter("domain"));
+                    if (peer instanceof TLRPC.User) {
+                        author = ((TLRPC.User) peer).id;
+                    } else if (peer instanceof TLRPC.Chat) {
+                        author = -((TLRPC.Chat) peer).id;
+                    }
+                }
+            }
+        }
+        long selfId = UserConfig.getInstance(currentAccount).clientUserId;
+        long dialogId = messageObject.getDialogId();
+        AyuMessagesController ayu = AyuMessagesController.getInstance();
+        try {
+            if (postId > 0 && ayu.getMessage(selfId, dialogId, postId) != null) {
+                return postId;
+            }
+            if (body.isEmpty()) {
+                return 0;
+            }
+            List<DeletedMessageFull> candidates = ayu.getOlderMessagesBefore(selfId, dialogId, message.id, 300);
+            ArrayList<DeletedMessageFull> media = new ArrayList<>();
+            for (DeletedMessageFull full : candidates) {
+                DeletedMessage deleted = full.message;
+                if (deleted == null || author != 0 && deleted.fromId != author) {
+                    continue;
+                }
+                if (deleted.text != null && deleted.text.contains(body)) {
+                    return deleted.messageId;
+                }
+                if (deleted.documentType != AyuConstants.DOCUMENT_TYPE_NONE) {
+                    media.add(full);
+                }
+            }
+            for (DeletedMessageFull full : media) {
+                MessageObject restored = new MessageObject(currentAccount, AyuHistoryHook.map(full, currentAccount), false, false);
+                if (restored.messageText != null && body.equals(restored.messageText.toString().trim())) {
+                    return full.message.messageId;
+                }
+            }
+            return 0;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private static long parseLong(String value) {
+        try {
+            return value == null ? 0 : Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     public static Prefix prefix(int currentAccount, MessageObject messageObject) {

@@ -624,6 +624,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         default void didPressReplyMessage(ChatMessageCell cell, int id, float x, float y, boolean longpress) {
         }
 
+        default boolean didPressDeletedReplyQuote(ChatMessageCell cell, MessageObject messageObject) {
+            return false;
+        }
+
         default boolean isProgressLoading(ChatMessageCell cell, int type) {
             return false;
         }
@@ -2666,7 +2670,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 y -= textY;
                 for (int a = 0; a < currentMessageObject.textLayoutBlocks.size(); a++) {
                     MessageObject.TextLayoutBlock block = currentMessageObject.textLayoutBlocks.get(a);
-                    if (block.quoteCollapse && block.collapsedHeight < block.height && y >= block.textYOffset(currentMessageObject.textLayoutBlocks, transitionParams) && y < block.textYOffset(currentMessageObject.textLayoutBlocks, transitionParams) + block.padTop + block.height(transitionParams) + block.padBottom) {
+                    if ((block.quoteCollapse && block.collapsedHeight < block.height || isDeletedReplyQuoteBlock(currentMessageObject, block)) && y >= block.textYOffset(currentMessageObject.textLayoutBlocks, transitionParams) && y < block.textYOffset(currentMessageObject.textLayoutBlocks, transitionParams) + block.padTop + block.height(transitionParams) + block.padBottom) {
                         pressedBlock = a;
                         if (block.collapsedBounce == null || block.collapsedBounce.getView() != this) {
                             block.collapsedBounce = new ButtonBounce(this);
@@ -2685,7 +2689,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             if (msg == null) {
                                 msg = block.messageObject = getPrimaryMessageObject();
                             }
-                            if (msg != null) {
+                            if (isDeletedReplyQuoteBlock(currentMessageObject, block) && delegate != null && delegate.didPressDeletedReplyQuote(this, currentMessageObject)) {
+                                continue;
+                            }
+                            if (msg != null && block.quoteCollapse && block.collapsedHeight < block.height) {
                                 final boolean newCollapsed = !block.collapsed();
                                 msg.expandedQuotes = msg.expandedQuotes == null ? new HashSet<>() : new HashSet<>(msg.expandedQuotes);
                                 if (newCollapsed) {
@@ -2718,6 +2725,18 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             pressedBlock = -1;
         }
         return pressedBlock != -1;
+    }
+
+    private MessageObject getCaptionMessageObject() {
+        if (currentMessagesGroup != null && currentMessagesGroup.findCaptionMessageObject() != null) {
+            return currentMessagesGroup.findCaptionMessageObject();
+        }
+        return currentMessageObject;
+    }
+
+    private static boolean isDeletedReplyQuoteBlock(MessageObject messageObject, MessageObject.TextLayoutBlock block) {
+        return block != null && block.quote && block.charactersOffset == 0
+                && app.exteraless.chats.DeletedReplyQuote.quoteLength(messageObject) > 0;
     }
 
     private boolean checkCaptionMotionEvent(MotionEvent event) {
@@ -2890,7 +2909,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 y -= captionY;
                 for (int a = 0; a < captionLayout.textLayoutBlocks.size(); a++) {
                     MessageObject.TextLayoutBlock block = captionLayout.textLayoutBlocks.get(a);
-                    if (block.quoteCollapse && block.collapsedHeight < block.height && y >= block.textYOffset(captionLayout.textLayoutBlocks, transitionParams) && y < block.textYOffset(captionLayout.textLayoutBlocks, transitionParams) + block.padTop + block.height(transitionParams) + block.padBottom) {
+                    if ((block.quoteCollapse && block.collapsedHeight < block.height || isDeletedReplyQuoteBlock(getCaptionMessageObject(), block)) && y >= block.textYOffset(captionLayout.textLayoutBlocks, transitionParams) && y < block.textYOffset(captionLayout.textLayoutBlocks, transitionParams) + block.padTop + block.height(transitionParams) + block.padBottom) {
                         pressedBlock = a;
                         if (block.collapsedBounce == null || block.collapsedBounce.getView() != this) {
                             block.collapsedBounce = new ButtonBounce(this);
@@ -2905,6 +2924,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     for (int a = 0; a < captionLayout.textLayoutBlocks.size(); a++) {
                         MessageObject.TextLayoutBlock block = captionLayout.textLayoutBlocks.get(a);
                         if (a == pressedBlock && !transitionParams.animateExpandedQuotes) {
+                            MessageObject captionMessage = getCaptionMessageObject();
+                            if (isDeletedReplyQuoteBlock(captionMessage, block) && delegate != null && delegate.didPressDeletedReplyQuote(this, captionMessage)) {
+                                continue;
+                            }
+                            if (!(block.quoteCollapse && block.collapsedHeight < block.height)) {
+                                continue;
+                            }
                             MessageObject msg = getPrimaryMessageObject();
                             final boolean newCollapsed = !block.collapsed();
                             msg.expandedQuotes = msg.expandedQuotes == null ? new HashSet<>() : new HashSet<>(msg.expandedQuotes);
