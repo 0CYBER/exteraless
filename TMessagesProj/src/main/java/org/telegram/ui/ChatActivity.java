@@ -2227,6 +2227,8 @@ public class ChatActivity extends BaseFragment implements
                         return allowEdit && !isAyuDeleted;
                     case DoubleTap.DOUBLE_TAP_ACTION_DELETE:
                         return allowDelete;
+                    case DoubleTap.DOUBLE_TAP_ACTION_DOWNLOAD:
+                        return canSaveByDoubleTap(message, noforwards);
                 }
             }
             return false;
@@ -2317,10 +2319,66 @@ public class ChatActivity extends BaseFragment implements
                     case DoubleTap.DOUBLE_TAP_ACTION_FORWARD:
                         processSelectedOption(OPTION_FORWARD);
                         break;
+                    case DoubleTap.DOUBLE_TAP_ACTION_DOWNLOAD:
+                        saveByDoubleTap();
+                        break;
                 }
             }
         }
     };
+
+    private boolean canSaveByDoubleTap(MessageObject message, boolean noforwards) {
+        if (message == null || noforwards || message.isSponsored() || chatMode == MODE_SCHEDULED
+                || message.needDrawBluredPreview() || message.hasExtendedMediaPreview()
+                || message.isVoiceOnce() || message.isRoundOnce()) {
+            return false;
+        }
+        return message.isPhoto() || message.isVideo() || message.isGif() || message.isMusic()
+                || message.isDocument() || message.isVoice() || message.isRoundVideo();
+    }
+
+    private boolean isMessageFileCached(MessageObject message) {
+        String path = message.messageOwner.attachPath;
+        if (!TextUtils.isEmpty(path) && new File(path).exists()) {
+            return true;
+        }
+        File file = getFileLoader().getPathToMessage(message.messageOwner);
+        return file != null && file.exists();
+    }
+
+    private void saveByDoubleTap() {
+        MessageObject message = selectedObject;
+        if (message == null || getParentActivity() == null) {
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= 23 && (Build.VERSION.SDK_INT <= 28 || BuildVars.NO_SCOPED_STORAGE) && getParentActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            getParentActivity().requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 4);
+            selectedObject = null;
+            selectedObjectGroup = null;
+            return;
+        }
+        if ((message.isPhoto() || message.isVideo()) && isMessageFileCached(message)) {
+            processSelectedOption(OPTION_SAVE_TO_GALLERY);
+            return;
+        }
+        ArrayList<MessageObject> messageObjects = new ArrayList<>();
+        if (selectedObjectGroup != null) {
+            messageObjects.addAll(selectedObjectGroup.messages);
+        } else {
+            messageObjects.add(message);
+        }
+        final boolean music = message.isMusic();
+        selectedObject = null;
+        selectedObjectGroup = null;
+        MediaController.saveFilesFromMessages(getParentActivity(), getAccountInstance(), messageObjects, count -> {
+            if (getParentActivity() == null || fragmentView == null) {
+                return;
+            }
+            if (count > 0) {
+                BulletinFactory.of(this).createDownloadBulletin(music ? BulletinFactory.FileType.AUDIOS : BulletinFactory.FileType.UNKNOWNS, count, themeDelegate).show();
+            }
+        });
+    }
 
     private class ChatActivityEnterViewDelegate implements ChatActivityEnterView.ChatActivityEnterViewDelegate {
 

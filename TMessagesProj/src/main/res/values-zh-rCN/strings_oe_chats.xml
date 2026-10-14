@@ -152,4 +152,5 @@
     <string name="OEChatsMenusHeader">菜单</string>
     <string name="OEChatsPlaybackHeader">播放</string>
     <string name="OEChatsVoiceHeader">语音消息</string>
+    <string name="OEDoubleTapSaveToDevice">保存到设备</string>
 </resources>

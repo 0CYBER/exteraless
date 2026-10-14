@@ -152,4 +152,5 @@
     <string name="OEChatsMenusHeader">Menús</string>
     <string name="OEChatsPlaybackHeader">Reproducción</string>
     <string name="OEChatsVoiceHeader">Mensajes de voz</string>
+    <string name="OEDoubleTapSaveToDevice">Guardar en el dispositivo</string>
 </resources>

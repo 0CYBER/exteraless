@@ -156,4 +156,5 @@
     <string name="OEChatsMenusHeader">القوائم</string>
     <string name="OEChatsPlaybackHeader">التشغيل</string>
     <string name="OEChatsVoiceHeader">الرسائل الصوتية</string>
+    <string name="OEDoubleTapSaveToDevice">حفظ على الجهاز</string>
 </resources>
