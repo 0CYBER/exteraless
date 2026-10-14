@@ -26,6 +26,18 @@ public final class PlayerStyle {
     public static final int BACKGROUND_GRADIENT = 1;
     public static final int BACKGROUND_BLUR = 2;
 
+    public static final int MINI_COVER_ROUNDED = 0;
+    public static final int MINI_COVER_ROUND = 1;
+    public static final int MINI_COVER_HIDDEN = 2;
+
+    public static final int MINI_SHAPE_ROUNDED = 0;
+    public static final int MINI_SHAPE_PILL = 1;
+    public static final int MINI_SHAPE_SQUARE = 2;
+
+    public static final int MINI_PROGRESS_RING = 0;
+    public static final int MINI_PROGRESS_LINE = 1;
+    public static final int MINI_PROGRESS_NONE = 2;
+
     public static final int COVER_SIZE_MIN = 60;
     public static final int COVER_SIZE_MAX = 100;
     public static final int COVER_RADIUS_MAX = 48;
@@ -154,6 +166,47 @@ public final class PlayerStyle {
     public static int background() {
         int value = item(AppearanceConfig.playerBackground).Int();
         return value < BACKGROUND_SOLID || value > BACKGROUND_BLUR ? BACKGROUND_SOLID : value;
+    }
+
+    private static int choice(ConfigItem item, int max) {
+        int value = item(item).Int();
+        return value < 0 || value > max ? 0 : value;
+    }
+
+    public static int miniCover() {
+        return choice(AppearanceConfig.playerMiniCover, MINI_COVER_HIDDEN);
+    }
+
+    public static int miniShape() {
+        return choice(AppearanceConfig.playerMiniShape, MINI_SHAPE_SQUARE);
+    }
+
+    public static int miniProgress() {
+        return choice(AppearanceConfig.playerMiniProgress, MINI_PROGRESS_NONE);
+    }
+
+    public static boolean miniThemeColors() {
+        return item(AppearanceConfig.playerMiniColors).Int() != COLORS_COVER;
+    }
+
+    public static boolean miniCompact() {
+        return item(AppearanceConfig.playerMiniCompact).Bool();
+    }
+
+    public static boolean miniArtist() {
+        return item(AppearanceConfig.playerMiniArtist).Bool();
+    }
+
+    public static boolean miniPrevious() {
+        return item(AppearanceConfig.playerMiniPrevious).Bool();
+    }
+
+    public static boolean miniNext() {
+        return item(AppearanceConfig.playerMiniNext).Bool();
+    }
+
+    public static boolean miniClose() {
+        return item(AppearanceConfig.playerMiniClose).Bool();
     }
 
     public static void reset() {

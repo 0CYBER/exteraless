@@ -77,4 +77,22 @@
     <string name="OEPlayerMoveDown">Move down</string>
     <string name="OEPlayerPreviewTitle">Track title</string>
     <string name="OEPlayerPreviewArtist">Artist</string>
+    <string name="OEPlayerStyleMini">Mini player</string>
+    <string name="OEPlayerMiniCoverRounded">Rounded</string>
+    <string name="OEPlayerMiniCoverRound">Round</string>
+    <string name="OEPlayerMiniCoverHidden">Hidden</string>
+    <string name="OEPlayerMiniShape">Shape</string>
+    <string name="OEPlayerMiniShapeRounded">Rounded</string>
+    <string name="OEPlayerMiniShapePill">Pill</string>
+    <string name="OEPlayerMiniShapeSquare">Square</string>
+    <string name="OEPlayerMiniProgress">Progress</string>
+    <string name="OEPlayerMiniProgressRing">Ring</string>
+    <string name="OEPlayerMiniProgressLine">Line</string>
+    <string name="OEPlayerMiniProgressNone">None</string>
+    <string name="OEPlayerMiniColors">Colors</string>
+    <string name="OEPlayerMiniCompact">Compact</string>
+    <string name="OEPlayerMiniArtist">Show artist</string>
+    <string name="OEPlayerMiniPrevious">Previous track button</string>
+    <string name="OEPlayerMiniNext">Next track button</string>
+    <string name="OEPlayerMiniClose">Close button</string>
 </resources>

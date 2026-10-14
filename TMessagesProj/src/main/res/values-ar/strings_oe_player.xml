@@ -77,4 +77,22 @@
     <string name="OEPlayerMoveDown">لأسفل</string>
     <string name="OEPlayerPreviewTitle">اسم المقطع</string>
     <string name="OEPlayerPreviewArtist">الفنان</string>
+    <string name="OEPlayerStyleMini">المشغل المصغّر</string>
+    <string name="OEPlayerMiniCoverRounded">مستديرة الزوايا</string>
+    <string name="OEPlayerMiniCoverRound">دائرية</string>
+    <string name="OEPlayerMiniCoverHidden">مخفية</string>
+    <string name="OEPlayerMiniShape">الشكل</string>
+    <string name="OEPlayerMiniShapeRounded">مستدير الزوايا</string>
+    <string name="OEPlayerMiniShapePill">كبسولة</string>
+    <string name="OEPlayerMiniShapeSquare">حاد</string>
+    <string name="OEPlayerMiniProgress">التقدّم</string>
+    <string name="OEPlayerMiniProgressRing">حلقة</string>
+    <string name="OEPlayerMiniProgressLine">شريط</string>
+    <string name="OEPlayerMiniProgressNone">بلا</string>
+    <string name="OEPlayerMiniColors">الألوان</string>
+    <string name="OEPlayerMiniCompact">مضغوط</string>
+    <string name="OEPlayerMiniArtist">إظهار الفنان</string>
+    <string name="OEPlayerMiniPrevious">زر «السابق»</string>
+    <string name="OEPlayerMiniNext">زر «التالي»</string>
+    <string name="OEPlayerMiniClose">زر «إغلاق»</string>
 </resources>

@@ -8,6 +8,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Outline;
+import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -21,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.AndroidUtilities;
@@ -30,31 +32,47 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 
+import java.util.ArrayList;
+
 public class PlayerMiniView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 
     public static final int HEIGHT_DP = 64;
+    private static final int COMPACT_HEIGHT_DP = 56;
+    private static final ArrayList<PlayerMiniView> attachedViews = new ArrayList<>();
 
     private final BaseFragment fragment;
     private final Theme.ResourcesProvider resourcesProvider;
+    private final boolean preview;
     private boolean dark;
     private int seed;
     private final LinearLayout card;
     private final GradientDrawable cardBg = new GradientDrawable();
     private final CoverImage cover;
+    private final LinearLayout texts;
     private final TextView titleView;
     private final TextView artistView;
     private final RingPlayButton playButton;
+    private final ImageView prevButton;
     private final ImageView nextButton;
     private final ImageView closeButton;
+    private final PlayerIcon prevIcon = PlayerIcon.fill(PlayerIcon.PREV, 24);
     private final PlayerIcon nextIcon = PlayerIcon.fill(PlayerIcon.NEXT, 24);
     private final PlayerIcon closeIcon = PlayerIcon.stroke(PlayerIcon.CLOSE, 22);
+    private final Paint linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private PlayerColors colors;
+    private ValueAnimator colorAnimator;
     private ValueAnimator showAnimator;
+    private int heightDp = HEIGHT_DP;
+    private float cardRadius = dp(20);
+    private int coverRadius = dp(12);
+    private int progressStyle;
+    private float drawnLineProgress = -1f;
     private MessageObject current;
     private boolean shown;
     private float showProgress;
@@ -63,38 +81,55 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     private Runnable offsetListener;
 
     public PlayerMiniView(Context context, BaseFragment fragment, Theme.ResourcesProvider resourcesProvider) {
+        this(context, fragment, resourcesProvider, false);
+    }
+
+    public static PlayerMiniView preview(Context context) {
+        return new PlayerMiniView(context, null, null, true);
+    }
+
+    private PlayerMiniView(Context context, BaseFragment fragment, Theme.ResourcesProvider resourcesProvider, boolean preview) {
         super(context);
         this.fragment = fragment;
         this.resourcesProvider = resourcesProvider;
+        this.preview = preview;
         dark = PlayerColors.isDark(resourcesProvider);
         seed = PlayerColors.fallbackSeed(resourcesProvider);
         colors = PlayerColors.fromSeed(seed, dark);
         setClipChildren(false);
         setClipToPadding(false);
 
-        card = new LinearLayout(context);
+        card = new LinearLayout(context) {
+            @Override
+            protected void dispatchDraw(@NonNull Canvas canvas) {
+                super.dispatchDraw(canvas);
+                drawProgressLine(canvas, getWidth(), getHeight());
+            }
+        };
         card.setOrientation(LinearLayout.HORIZONTAL);
         card.setGravity(Gravity.CENTER_VERTICAL);
         card.setPadding(dp(10), 0, dp(6), 0);
-        cardBg.setCornerRadius(dp(20));
+        cardBg.setCornerRadius(cardRadius);
         card.setBackground(cardBg);
         card.setOutlineProvider(new ViewOutlineProvider() {
             @Override
             public void getOutline(View view, Outline outline) {
-                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), dp(20));
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cardRadius);
             }
         });
         card.setClipToOutline(true);
         card.setElevation(dp(6));
-        card.setOnClickListener(v -> Md3Player.open(fragment, this));
-        card.setContentDescription(getString(R.string.OEPlayerOpen));
+        if (!preview) {
+            card.setOnClickListener(v -> Md3Player.open(fragment, this));
+            card.setContentDescription(getString(R.string.OEPlayerOpen));
+        }
         addView(card, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, HEIGHT_DP, Gravity.BOTTOM, 12, 0, 12, 12));
 
         cover = new CoverImage(context, 22);
-        cover.setRadius(dp(12));
+        cover.setRadius(coverRadius);
         card.addView(cover, LayoutHelper.createLinear(44, 44));
 
-        LinearLayout texts = new LinearLayout(context);
+        texts = new LinearLayout(context);
         texts.setOrientation(LinearLayout.VERTICAL);
         titleView = new TextView(context);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
@@ -110,41 +145,178 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
         texts.addView(artistView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 2, 0, 0));
         card.addView(texts, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, 12, 0, 4, 0));
 
+        prevButton = addButton(context, prevIcon, R.string.AccDescrPrevious, () -> MediaController.getInstance().playPreviousMessage());
+
         playButton = new RingPlayButton(context, 20, 3, 22, 1.3f, 12);
-        playButton.setOnClickListener(v -> {
-            MediaController mc = MediaController.getInstance();
-            MessageObject mo = mc.getPlayingMessageObject();
-            if (mo == null || mc.isDownloadingCurrentMessage()) {
-                return;
-            }
-            if (mc.isMessagePaused()) {
-                mc.playMessage(mo);
-            } else {
-                mc.pauseMessage(mo);
-            }
-        });
+        if (!preview) {
+            playButton.setOnClickListener(v -> {
+                MediaController mc = MediaController.getInstance();
+                MessageObject mo = mc.getPlayingMessageObject();
+                if (mo == null || mc.isDownloadingCurrentMessage()) {
+                    return;
+                }
+                if (mc.isMessagePaused()) {
+                    mc.playMessage(mo);
+                } else {
+                    mc.pauseMessage(mo);
+                }
+            });
+        }
         card.addView(playButton, LayoutHelper.createLinear(48, 48));
 
-        nextButton = new ImageView(context);
-        nextButton.setScaleType(ImageView.ScaleType.CENTER);
-        nextButton.setImageDrawable(nextIcon);
-        nextButton.setContentDescription(getString(R.string.Next));
-        nextButton.setOnClickListener(v -> MediaController.getInstance().playNextMessage());
-        card.addView(nextButton, LayoutHelper.createLinear(44, 48));
+        nextButton = addButton(context, nextIcon, R.string.Next, () -> MediaController.getInstance().playNextMessage());
+        closeButton = addButton(context, closeIcon, R.string.AccDescrClosePlayer, () -> MediaController.getInstance().cleanupPlayer(true, true));
 
-        closeButton = new ImageView(context);
-        closeButton.setScaleType(ImageView.ScaleType.CENTER);
-        closeButton.setImageDrawable(closeIcon);
-        closeButton.setContentDescription(getString(R.string.AccDescrClosePlayer));
-        closeButton.setOnClickListener(v -> MediaController.getInstance().cleanupPlayer(true, true));
-        card.addView(closeButton, LayoutHelper.createLinear(44, 48));
+        linePaint.setStyle(Paint.Style.STROKE);
+        linePaint.setStrokeCap(Paint.Cap.ROUND);
+        linePaint.setStrokeWidth(dp(3));
 
         applyColors(colors);
+        applyStyle(false);
         setVisibility(GONE);
     }
 
+    private ImageView addButton(Context context, PlayerIcon icon, int descriptionRes, Runnable action) {
+        ImageView button = new ImageView(context);
+        button.setScaleType(ImageView.ScaleType.CENTER);
+        button.setImageDrawable(icon);
+        button.setContentDescription(getString(descriptionRes));
+        if (!preview) {
+            button.setOnClickListener(v -> action.run());
+        }
+        card.addView(button, LayoutHelper.createLinear(44, 48));
+        return button;
+    }
+
+    public static void styleChanged() {
+        for (int i = 0; i < attachedViews.size(); i++) {
+            attachedViews.get(i).applyStyle(true);
+        }
+    }
+
+    public void applyStyle(boolean animated) {
+        boolean compact = PlayerStyle.miniCompact();
+        int height = compact ? COMPACT_HEIGHT_DP : HEIGHT_DP;
+        int coverSize = compact ? 40 : 44;
+        int coverMode = PlayerStyle.miniCover();
+        int shape = PlayerStyle.miniShape();
+        boolean heightChanged = height != heightDp;
+        heightDp = height;
+        FrameLayout.LayoutParams cardParams = (FrameLayout.LayoutParams) card.getLayoutParams();
+        if (cardParams.height != dp(height)) {
+            cardParams.height = dp(height);
+            card.setLayoutParams(cardParams);
+        }
+        card.setPadding(dp((height - coverSize) / 2f), 0, dp(6), 0);
+        cardRadius = shape == PlayerStyle.MINI_SHAPE_PILL ? dp(height) / 2f : dp(shape == PlayerStyle.MINI_SHAPE_SQUARE ? 10 : 20);
+        cardBg.setCornerRadius(cardRadius);
+        card.invalidateOutline();
+
+        boolean coverVisible = coverMode != PlayerStyle.MINI_COVER_HIDDEN;
+        cover.setVisibility(coverVisible ? VISIBLE : GONE);
+        LinearLayout.LayoutParams coverParams = (LinearLayout.LayoutParams) cover.getLayoutParams();
+        if (coverParams.width != dp(coverSize)) {
+            coverParams.width = dp(coverSize);
+            coverParams.height = dp(coverSize);
+            cover.setLayoutParams(coverParams);
+        }
+        coverRadius = coverMode == PlayerStyle.MINI_COVER_ROUND ? dp(coverSize) / 2 : dp(compact ? 10 : 12);
+        cover.setRadius(coverRadius);
+        LinearLayout.LayoutParams textParams = (LinearLayout.LayoutParams) texts.getLayoutParams();
+        int textStart = coverVisible ? dp(12) : dp(shape == PlayerStyle.MINI_SHAPE_PILL ? 10 : 6);
+        if (textParams.leftMargin != textStart) {
+            textParams.leftMargin = textStart;
+            texts.setLayoutParams(textParams);
+        }
+
+        artistView.setVisibility(PlayerStyle.miniArtist() ? VISIBLE : GONE);
+        prevButton.setVisibility(PlayerStyle.miniPrevious() ? VISIBLE : GONE);
+        nextButton.setVisibility(PlayerStyle.miniNext() ? VISIBLE : GONE);
+        closeButton.setVisibility(PlayerStyle.miniClose() ? VISIBLE : GONE);
+        progressStyle = PlayerStyle.miniProgress();
+        playButton.setRingVisible(progressStyle == PlayerStyle.MINI_PROGRESS_RING);
+        card.invalidate();
+
+        cover.setListener(seed, PlayerStyle.miniThemeColors() ? null : this::onSeed);
+        refreshColors(animated);
+        if (heightChanged) {
+            notifyOffset();
+        }
+    }
+
+    private void refreshColors(boolean animated) {
+        if (PlayerStyle.miniThemeColors() || current == null) {
+            setTargetColors(PlayerColors.fromSeed(seed, dark), animated);
+            return;
+        }
+        Integer cached = PlayerArt.cachedSeed(current);
+        if (cached != null) {
+            setTargetColors(PlayerColors.fromSeed(cached, dark), animated);
+            return;
+        }
+        Bitmap bitmap = cover.getImageReceiver().getBitmap();
+        if (bitmap != null) {
+            MessageObject target = current;
+            PlayerArt.requestSeed(target, bitmap, seed, value -> onSeed(target, value));
+        }
+    }
+
+    private void onSeed(MessageObject mo, int value) {
+        if (mo == current && !PlayerStyle.miniThemeColors()) {
+            setTargetColors(PlayerColors.fromSeed(value, dark), isAttachedToWindow());
+        }
+    }
+
+    private void setTargetColors(PlayerColors target, boolean animated) {
+        if (colorAnimator != null) {
+            colorAnimator.cancel();
+            colorAnimator = null;
+        }
+        if (target.primaryContainer == colors.primaryContainer && target.onPrimaryContainer == colors.onPrimaryContainer) {
+            return;
+        }
+        if (!animated || !isAttachedToWindow()) {
+            applyColors(target);
+            return;
+        }
+        PlayerColors from = colors;
+        colorAnimator = ValueAnimator.ofFloat(0f, 1f);
+        colorAnimator.addUpdateListener(a -> applyColors(PlayerColors.lerp(from, target, (float) a.getAnimatedValue())));
+        colorAnimator.setDuration(320);
+        colorAnimator.start();
+    }
+
+    private void drawProgressLine(Canvas canvas, int w, int h) {
+        if (progressStyle != PlayerStyle.MINI_PROGRESS_LINE) {
+            return;
+        }
+        MessageObject mo = current;
+        float progress = mo != null ? Utilities.clamp01(mo.audioProgress) : preview ? 0.36f : 0f;
+        drawnLineProgress = progress;
+        float inset = Math.max(dp(16), cardRadius);
+        float y = h - dp(4);
+        float right = w - inset;
+        linePaint.setColor(ColorUtils.setAlphaComponent(colors.onPrimaryContainer, 46));
+        canvas.drawLine(inset, y, right, y, linePaint);
+        if (progress > 0f) {
+            linePaint.setColor(colors.onPrimaryContainer);
+            canvas.drawLine(inset, y, inset + (right - inset) * progress, y, linePaint);
+        }
+    }
+
+    private void lineProgressChanged() {
+        MessageObject mo = current;
+        if (progressStyle != PlayerStyle.MINI_PROGRESS_LINE || mo == null) {
+            return;
+        }
+        float progress = Utilities.clamp01(mo.audioProgress);
+        if (Math.abs(progress - drawnLineProgress) * card.getWidth() >= 1f) {
+            card.invalidate();
+        }
+    }
+
     public boolean canTransition() {
-        return isAttachedToWindow() && getVisibility() == VISIBLE && shown && showProgress >= 1f && hostFactor >= 0.99f && card.getWidth() > 0;
+        return !preview && isAttachedToWindow() && getVisibility() == VISIBLE && shown && showProgress >= 1f && hostFactor >= 0.99f && card.getWidth() > 0 && cover.getVisibility() == VISIBLE;
     }
 
     public void getCardRect(RectF out) {
@@ -162,11 +334,11 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     }
 
     public float getCardRadius() {
-        return dp(20);
+        return cardRadius;
     }
 
     public float getCoverRadius() {
-        return dp(12);
+        return coverRadius;
     }
 
     public int getCardColor() {
@@ -208,11 +380,11 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     }
 
     public float getVisibleOffset() {
-        return (dp(HEIGHT_DP) + dp(8)) * showProgress * hostFactor;
+        return (dp(heightDp) + dp(8)) * showProgress * hostFactor;
     }
 
     public int getTargetOffset() {
-        return shown && hostFactor > 0.5f ? dp(HEIGHT_DP) + dp(8) : 0;
+        return shown && hostFactor > 0.5f ? dp(heightDp) + dp(8) : 0;
     }
 
     public void setHostPosition(float translation, float factor) {
@@ -241,6 +413,12 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        applyStyle(false);
+        if (preview) {
+            bindPreview();
+            return;
+        }
+        attachedViews.add(this);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             NotificationCenter nc = NotificationCenter.getInstance(a);
             nc.addObserver(this, NotificationCenter.messagePlayingDidStart);
@@ -256,6 +434,14 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+        if (colorAnimator != null) {
+            colorAnimator.cancel();
+            colorAnimator = null;
+        }
+        if (preview) {
+            return;
+        }
+        attachedViews.remove(this);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             NotificationCenter nc = NotificationCenter.getInstance(a);
             nc.removeObserver(this, NotificationCenter.messagePlayingDidStart);
@@ -271,6 +457,7 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.messagePlayingProgressDidChanged) {
             playButton.progressChanged();
+            lineProgressChanged();
         } else if (id == NotificationCenter.audioInfoLoaded) {
             MessageObject mo = current;
             if (mo != null && PlayerArt.isPlaying(mo)) {
@@ -292,8 +479,27 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
         if (themeDark != dark || themeSeed != seed) {
             dark = themeDark;
             seed = themeSeed;
-            applyColors(PlayerColors.fromSeed(seed, dark));
+            cover.setListener(seed, PlayerStyle.miniThemeColors() ? null : this::onSeed);
+            refreshColors(false);
         }
+    }
+
+    public void bindPreview() {
+        MessageObject mo = MediaController.getInstance().getPlayingMessageObject();
+        if (mo != null && mo.isMusic() && mo.getId() != 0) {
+            bind(mo);
+        } else {
+            current = null;
+            titleView.setText(getString(R.string.OEPlayerPreviewTitle));
+            artistView.setText(getString(R.string.OEPlayerPreviewArtist));
+            cover.setMessage(null);
+            playButton.setMessage(null);
+        }
+        playButton.setPlaying(false, false);
+        shown = true;
+        showProgress = 1f;
+        applyTransform();
+        refreshColors(false);
     }
 
     public void update(boolean animated) {
@@ -308,12 +514,18 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     }
 
     private void bind(MessageObject mo) {
+        boolean changed = current != mo;
         current = mo;
         titleView.setText(mo.getMusicTitle());
         artistView.setText(mo.getMusicAuthor());
         cover.setMessage(mo);
         playButton.setMessage(mo);
         playButton.setContentDescription(getString(MediaController.getInstance().isMessagePaused() ? R.string.AccActionPlay : R.string.AccActionPause));
+        if (changed) {
+            drawnLineProgress = -1f;
+            card.invalidate();
+            refreshColors(isAttachedToWindow());
+        }
     }
 
     private void setShown(boolean value, boolean animated) {
@@ -353,13 +565,16 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
         cover.setColors(c.secondaryContainer, c.onSecondaryContainer);
         titleView.setTextColor(c.onPrimaryContainer);
         artistView.setTextColor(c.onPrimaryContainer);
+        prevIcon.setColor(c.onPrimaryContainer);
         nextIcon.setColor(c.onPrimaryContainer);
         closeIcon.setColor(c.onPrimaryContainer);
         int ripple = ColorUtils.setAlphaComponent(c.onPrimaryContainer, 0x1f);
+        prevButton.setBackground(Theme.createSelectorDrawable(ripple, Theme.RIPPLE_MASK_CIRCLE_20DP));
         nextButton.setBackground(Theme.createSelectorDrawable(ripple, Theme.RIPPLE_MASK_CIRCLE_20DP));
         closeButton.setBackground(Theme.createSelectorDrawable(ripple, Theme.RIPPLE_MASK_CIRCLE_20DP));
         playButton.setBackground(Theme.createSelectorDrawable(ripple, Theme.RIPPLE_MASK_CIRCLE_20DP));
         playButton.setColors(c.onPrimaryContainer, ColorUtils.setAlphaComponent(c.onPrimaryContainer, 46), c.onPrimaryContainer);
         card.setForeground(Theme.createSelectorDrawable(ripple, Theme.RIPPLE_MASK_ALL));
+        card.invalidate();
     }
 }

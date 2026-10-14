@@ -328,6 +328,33 @@ object AppearanceConfig {
     @JvmField
     val playerBackground = addConfig("OEPlayerBackground", ConfigItem.configTypeInt, 0)
 
+    @JvmField
+    val playerMiniCover = addConfig("OEPlayerMiniCover", ConfigItem.configTypeInt, 0)
+
+    @JvmField
+    val playerMiniShape = addConfig("OEPlayerMiniShape", ConfigItem.configTypeInt, 0)
+
+    @JvmField
+    val playerMiniProgress = addConfig("OEPlayerMiniProgress", ConfigItem.configTypeInt, 0)
+
+    @JvmField
+    val playerMiniColors = addConfig("OEPlayerMiniColors", ConfigItem.configTypeInt, 1)
+
+    @JvmField
+    val playerMiniCompact = addConfig("OEPlayerMiniCompact", ConfigItem.configTypeBool, false)
+
+    @JvmField
+    val playerMiniArtist = addConfig("OEPlayerMiniArtist", ConfigItem.configTypeBool, true)
+
+    @JvmField
+    val playerMiniPrevious = addConfig("OEPlayerMiniPrevious", ConfigItem.configTypeBool, false)
+
+    @JvmField
+    val playerMiniNext = addConfig("OEPlayerMiniNext", ConfigItem.configTypeBool, true)
+
+    @JvmField
+    val playerMiniClose = addConfig("OEPlayerMiniClose", ConfigItem.configTypeBool, true)
+
     @JvmStatic
     fun playerStyleItems(): List<ConfigItem> {
         ensureLoaded()
@@ -335,7 +362,9 @@ object AppearanceConfig {
             playerCoverStyle, playerCoverSize, playerCoverRadius, playerDiscSpin, playerCoverSwipe,
             playerTitleAlign, playerTitleSize, playerTitleAbove, playerOrder, playerShowActions,
             playerShowModes, playerShowLike, playerShowSource, playerWavy, playerControlsSize,
-            playerColors, playerBackground
+            playerColors, playerBackground, playerMiniCover, playerMiniShape, playerMiniProgress,
+            playerMiniColors, playerMiniCompact, playerMiniArtist, playerMiniPrevious, playerMiniNext,
+            playerMiniClose
         )
     }
 

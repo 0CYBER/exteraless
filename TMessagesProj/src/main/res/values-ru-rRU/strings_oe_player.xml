@@ -77,4 +77,22 @@
     <string name="OEPlayerMoveDown">Ниже</string>
     <string name="OEPlayerPreviewTitle">Название трека</string>
     <string name="OEPlayerPreviewArtist">Исполнитель</string>
+    <string name="OEPlayerStyleMini">Мини-плеер</string>
+    <string name="OEPlayerMiniCoverRounded">Скруглённая</string>
+    <string name="OEPlayerMiniCoverRound">Круглая</string>
+    <string name="OEPlayerMiniCoverHidden">Скрыта</string>
+    <string name="OEPlayerMiniShape">Форма</string>
+    <string name="OEPlayerMiniShapeRounded">Скруглённая</string>
+    <string name="OEPlayerMiniShapePill">Пилюля</string>
+    <string name="OEPlayerMiniShapeSquare">Строгая</string>
+    <string name="OEPlayerMiniProgress">Прогресс</string>
+    <string name="OEPlayerMiniProgressRing">Кольцо</string>
+    <string name="OEPlayerMiniProgressLine">Полоса</string>
+    <string name="OEPlayerMiniProgressNone">Нет</string>
+    <string name="OEPlayerMiniColors">Цвета</string>
+    <string name="OEPlayerMiniCompact">Компактный</string>
+    <string name="OEPlayerMiniArtist">Показывать исполнителя</string>
+    <string name="OEPlayerMiniPrevious">Кнопка «Предыдущий трек»</string>
+    <string name="OEPlayerMiniNext">Кнопка «Следующий трек»</string>
+    <string name="OEPlayerMiniClose">Кнопка «Закрыть»</string>
 </resources>

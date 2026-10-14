@@ -77,4 +77,22 @@
     <string name="OEPlayerMoveDown">Bajar</string>
     <string name="OEPlayerPreviewTitle">Título de la pista</string>
     <string name="OEPlayerPreviewArtist">Artista</string>
+    <string name="OEPlayerStyleMini">Minirreproductor</string>
+    <string name="OEPlayerMiniCoverRounded">Redondeada</string>
+    <string name="OEPlayerMiniCoverRound">Circular</string>
+    <string name="OEPlayerMiniCoverHidden">Oculta</string>
+    <string name="OEPlayerMiniShape">Forma</string>
+    <string name="OEPlayerMiniShapeRounded">Redondeada</string>
+    <string name="OEPlayerMiniShapePill">Píldora</string>
+    <string name="OEPlayerMiniShapeSquare">Recta</string>
+    <string name="OEPlayerMiniProgress">Progreso</string>
+    <string name="OEPlayerMiniProgressRing">Anillo</string>
+    <string name="OEPlayerMiniProgressLine">Línea</string>
+    <string name="OEPlayerMiniProgressNone">Ninguno</string>
+    <string name="OEPlayerMiniColors">Colores</string>
+    <string name="OEPlayerMiniCompact">Compacto</string>
+    <string name="OEPlayerMiniArtist">Mostrar artista</string>
+    <string name="OEPlayerMiniPrevious">Botón «Anterior»</string>
+    <string name="OEPlayerMiniNext">Botón «Siguiente»</string>
+    <string name="OEPlayerMiniClose">Botón «Cerrar»</string>
 </resources>

@@ -77,4 +77,22 @@
     <string name="OEPlayerMoveDown">W dół</string>
     <string name="OEPlayerPreviewTitle">Tytuł utworu</string>
     <string name="OEPlayerPreviewArtist">Wykonawca</string>
+    <string name="OEPlayerStyleMini">Miniodtwarzacz</string>
+    <string name="OEPlayerMiniCoverRounded">Zaokrąglona</string>
+    <string name="OEPlayerMiniCoverRound">Okrągła</string>
+    <string name="OEPlayerMiniCoverHidden">Ukryta</string>
+    <string name="OEPlayerMiniShape">Kształt</string>
+    <string name="OEPlayerMiniShapeRounded">Zaokrąglony</string>
+    <string name="OEPlayerMiniShapePill">Pigułka</string>
+    <string name="OEPlayerMiniShapeSquare">Prostokątny</string>
+    <string name="OEPlayerMiniProgress">Postęp</string>
+    <string name="OEPlayerMiniProgressRing">Pierścień</string>
+    <string name="OEPlayerMiniProgressLine">Pasek</string>
+    <string name="OEPlayerMiniProgressNone">Brak</string>
+    <string name="OEPlayerMiniColors">Kolory</string>
+    <string name="OEPlayerMiniCompact">Kompaktowy</string>
+    <string name="OEPlayerMiniArtist">Pokazuj wykonawcę</string>
+    <string name="OEPlayerMiniPrevious">Przycisk „Poprzedni”</string>
+    <string name="OEPlayerMiniNext">Przycisk „Następny”</string>
+    <string name="OEPlayerMiniClose">Przycisk „Zamknij”</string>
 </resources>

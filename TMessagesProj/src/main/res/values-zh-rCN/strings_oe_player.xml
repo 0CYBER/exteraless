@@ -77,4 +77,22 @@
     <string name="OEPlayerMoveDown">下移</string>
     <string name="OEPlayerPreviewTitle">曲目名称</string>
     <string name="OEPlayerPreviewArtist">艺术家</string>
+    <string name="OEPlayerStyleMini">迷你播放器</string>
+    <string name="OEPlayerMiniCoverRounded">圆角</string>
+    <string name="OEPlayerMiniCoverRound">圆形</string>
+    <string name="OEPlayerMiniCoverHidden">隐藏</string>
+    <string name="OEPlayerMiniShape">形状</string>
+    <string name="OEPlayerMiniShapeRounded">圆角</string>
+    <string name="OEPlayerMiniShapePill">胶囊</string>
+    <string name="OEPlayerMiniShapeSquare">方正</string>
+    <string name="OEPlayerMiniProgress">进度</string>
+    <string name="OEPlayerMiniProgressRing">圆环</string>
+    <string name="OEPlayerMiniProgressLine">进度条</string>
+    <string name="OEPlayerMiniProgressNone">无</string>
+    <string name="OEPlayerMiniColors">颜色</string>
+    <string name="OEPlayerMiniCompact">紧凑</string>
+    <string name="OEPlayerMiniArtist">显示艺术家</string>
+    <string name="OEPlayerMiniPrevious">「上一首」按钮</string>
+    <string name="OEPlayerMiniNext">「下一首」按钮</string>
+    <string name="OEPlayerMiniClose">「关闭」按钮</string>
 </resources>

@@ -58,6 +58,7 @@ public class PlayerStyleEditor extends LinearLayout {
     private View positionGroup;
     private View backgroundGroup;
     private OrderList orderList;
+    private PlayerMiniView miniPreview;
 
     public PlayerStyleEditor(Context context, PlayerColors colors, Listener listener) {
         super(context);
@@ -113,6 +114,30 @@ public class PlayerStyleEditor extends LinearLayout {
                 getString(R.string.OEPlayerBackgroundSolid), getString(R.string.OEPlayerBackgroundGradient), getString(R.string.OEPlayerBackgroundBlur)
         }, PlayerStyle::background, value -> AppearanceConfig.playerBackground.setConfigInt(value));
 
+        addHeader(R.string.OEPlayerStyleMini);
+        miniPreview = PlayerMiniView.preview(context);
+        addView(miniPreview, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, PlayerMiniView.HEIGHT_DP + 16));
+        addInfo(R.string.OEPlayerStyleCover);
+        addSegmented(new String[]{
+                getString(R.string.OEPlayerMiniCoverRounded), getString(R.string.OEPlayerMiniCoverRound), getString(R.string.OEPlayerMiniCoverHidden)
+        }, PlayerStyle::miniCover, value -> AppearanceConfig.playerMiniCover.setConfigInt(value));
+        addInfo(R.string.OEPlayerMiniShape);
+        addSegmented(new String[]{
+                getString(R.string.OEPlayerMiniShapeRounded), getString(R.string.OEPlayerMiniShapePill), getString(R.string.OEPlayerMiniShapeSquare)
+        }, PlayerStyle::miniShape, value -> AppearanceConfig.playerMiniShape.setConfigInt(value));
+        addInfo(R.string.OEPlayerMiniProgress);
+        addSegmented(new String[]{
+                getString(R.string.OEPlayerMiniProgressRing), getString(R.string.OEPlayerMiniProgressLine), getString(R.string.OEPlayerMiniProgressNone)
+        }, PlayerStyle::miniProgress, value -> AppearanceConfig.playerMiniProgress.setConfigInt(value));
+        addInfo(R.string.OEPlayerMiniColors);
+        addSegmented(new String[]{getString(R.string.OEPlayerColorsCover), getString(R.string.OEPlayerColorsTheme)},
+                () -> PlayerStyle.miniThemeColors() ? 1 : 0, value -> AppearanceConfig.playerMiniColors.setConfigInt(value));
+        addToggle(R.string.OEPlayerMiniCompact, AppearanceConfig.playerMiniCompact);
+        addToggle(R.string.OEPlayerMiniArtist, AppearanceConfig.playerMiniArtist);
+        addToggle(R.string.OEPlayerMiniPrevious, AppearanceConfig.playerMiniPrevious);
+        addToggle(R.string.OEPlayerMiniNext, AppearanceConfig.playerMiniNext);
+        addToggle(R.string.OEPlayerMiniClose, AppearanceConfig.playerMiniClose);
+
         refreshVisibility();
         setColors(colors);
     }
@@ -129,10 +154,19 @@ public class PlayerStyleEditor extends LinearLayout {
             part.refresh();
         }
         refreshVisibility();
+        refreshMini();
+    }
+
+    private void refreshMini() {
+        if (miniPreview != null) {
+            miniPreview.applyStyle(true);
+        }
+        PlayerMiniView.styleChanged();
     }
 
     private void changed() {
         refreshVisibility();
+        refreshMini();
         if (listener != null) {
             listener.onStyleChanged();
         }
