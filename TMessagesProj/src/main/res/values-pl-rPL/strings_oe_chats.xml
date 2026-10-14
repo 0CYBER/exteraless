@@ -153,4 +153,5 @@
     <string name="OEChatsPlaybackHeader">Odtwarzanie</string>
     <string name="OEChatsVoiceHeader">Wiadomości głosowe</string>
     <string name="OEDoubleTapSaveToDevice">Zapisz na urządzeniu</string>
+    <string name="OESendAfterSlowMode">Wyślij po trybie powolnym</string>
 </resources>

@@ -5604,6 +5604,16 @@ public class ChatActivityEnterView extends FrameLayout implements
                 });
                 sendWhenOnlineButton = options.getLast();
             }
+            if (!self && slowModeTimer > 0 && slowModeTimer < Integer.MAX_VALUE - 1) {
+                options.add(R.drawable.msg_recent, getString(R.string.OESendAfterSlowMode), () -> {
+                    int now = ConnectionsManager.getInstance(currentAccount).getCurrentTime();
+                    sendMessageInternal(true, Math.max(slowModeTimer + 1, now + 15), 0, 0, true);
+                    if (messageSendPreview != null) {
+                        messageSendPreview.dismiss(false);
+                        messageSendPreview = null;
+                    }
+                });
+            }
         }
 
         if (parentFragment != null && delegate != null && ChatObject.isMonoForum(parentFragment.getCurrentChat())) {

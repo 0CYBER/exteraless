@@ -157,4 +157,5 @@
     <string name="OEChatsPlaybackHeader">التشغيل</string>
     <string name="OEChatsVoiceHeader">الرسائل الصوتية</string>
     <string name="OEDoubleTapSaveToDevice">حفظ على الجهاز</string>
+    <string name="OESendAfterSlowMode">إرسال بعد انتهاء الوضع البطيء</string>
 </resources>
