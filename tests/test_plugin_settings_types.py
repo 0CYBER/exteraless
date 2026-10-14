@@ -2,6 +2,7 @@ import importlib.util
 import json
 import os
 import sys
+import types
 
 import pytest
 
@@ -16,9 +17,22 @@ PLUGIN_SETTINGS = os.path.join(corpus.PYTHON_ROOT, "plugin_settings.py")
 def settings():
     if not os.path.isfile(PLUGIN_SETTINGS):
         pytest.skip(f"missing {PLUGIN_SETTINGS}")
-    spec = importlib.util.spec_from_file_location("exteraless_plugin_settings", PLUGIN_SETTINGS)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    bridge = types.ModuleType("app.exteraless.plugins")
+    bridge.PythonBridge = None
+    stubs = {"app": types.ModuleType("app"), "app.exteraless": types.ModuleType("app.exteraless"),
+             "app.exteraless.plugins": bridge}
+    saved = {name: sys.modules.get(name) for name in stubs}
+    sys.modules.update(stubs)
+    try:
+        spec = importlib.util.spec_from_file_location("exteraless_plugin_settings", PLUGIN_SETTINGS)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    finally:
+        for name, previous in saved.items():
+            if previous is None:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = previous
     return module
 
 
