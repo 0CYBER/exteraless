@@ -192,4 +192,5 @@
     <string name="PluginOverlayOpen">Открыть настройки</string>
     <string name="PluginsSafeModeEnabledNow">Безопасный режим включён, все плагины выключены.</string>
     <string name="PluginsSafeModeDisabledNow">Безопасный режим выключен, плагины загружаются.</string>
+    <string name="PluginActivityExport">Выгрузить журнал</string>
 </resources>

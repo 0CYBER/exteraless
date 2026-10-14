@@ -185,4 +185,5 @@
     <string name="PluginOverlayOpen">فتح الإعدادات</string>
     <string name="PluginsSafeModeEnabledNow">تم تفعيل الوضع الآمن، وأُوقفت جميع الإضافات.</string>
     <string name="PluginsSafeModeDisabledNow">تم إيقاف الوضع الآمن، جارٍ تحميل الإضافات.</string>
+    <string name="PluginActivityExport">تصدير السجل</string>
 </resources>

@@ -183,4 +183,5 @@ Wtyczka: %1$s
     <string name="PluginOverlayOpen">Otwórz ustawienia</string>
     <string name="PluginsSafeModeEnabledNow">Tryb awaryjny włączony, wszystkie wtyczki są wyłączone.</string>
     <string name="PluginsSafeModeDisabledNow">Tryb awaryjny wyłączony, wtyczki się ładują.</string>
+    <string name="PluginActivityExport">Eksportuj dziennik</string>
 </resources>

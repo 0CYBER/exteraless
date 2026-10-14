@@ -183,4 +183,5 @@
     <string name="PluginOverlayOpen">打开设置</string>
     <string name="PluginsSafeModeEnabledNow">安全模式已开启，所有插件已停用。</string>
     <string name="PluginsSafeModeDisabledNow">安全模式已关闭，正在加载插件。</string>
+    <string name="PluginActivityExport">导出日志</string>
 </resources>

@@ -183,4 +183,5 @@ Código:
     <string name="PluginOverlayOpen">Abrir ajustes</string>
     <string name="PluginsSafeModeEnabledNow">Modo seguro activado: todos los plugins están desactivados.</string>
     <string name="PluginsSafeModeDisabledNow">Modo seguro desactivado: cargando los plugins.</string>
+    <string name="PluginActivityExport">Exportar registro</string>
 </resources>
