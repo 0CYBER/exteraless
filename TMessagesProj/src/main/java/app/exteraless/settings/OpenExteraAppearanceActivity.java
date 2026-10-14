@@ -584,8 +584,8 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
             return;
         } else if (position == md3SwitchRow) {
             NaConfig.INSTANCE.getSwitchStyle().setConfigInt(
-                    isMd3(NaConfig.INSTANCE.getSwitchStyle().Int()) ? 0 : STYLE_MD3);
-            rebuildAllAndSelf(view, isMd3(NaConfig.INSTANCE.getSwitchStyle().Int()));
+                    isMd3Switch(NaConfig.INSTANCE.getSwitchStyle().Int()) ? 0 : SWITCH_STYLE_M3);
+            rebuildAllAndSelf(view, isMd3Switch(NaConfig.INSTANCE.getSwitchStyle().Int()));
             return;
         } else if (position == md3ChatHeaderRow) {
             AppearanceConfig.newChatHeaderStyle.setConfigBool(!AppearanceConfig.newChatHeaderStyle.Bool());
@@ -965,7 +965,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
                                 isMd3(NaConfig.INSTANCE.getSliderStyle().Int()), true, true);
                     } else if (position == md3SwitchRow) {
                         cell.setText(getString(R.string.OEAppearanceSwitchStyle), "",
-                                isMd3(NaConfig.INSTANCE.getSwitchStyle().Int()), true, true);
+                                isMd3Switch(NaConfig.INSTANCE.getSwitchStyle().Int()), true, true);
                     } else if (position == md3ChatHeaderRow) {
                         cell.setText(getString(R.string.OEAppearanceNewChatHeaderStyle), "",
                                 AppearanceConfig.newChatHeaderStyle.Bool(), true, true);
@@ -1126,15 +1126,21 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
     /** Значение селектора NagramX, соответствующее Material Design 3. */
     private static final int STYLE_MD3 = 2;
 
+    private static final int SWITCH_STYLE_M3 = org.telegram.ui.Components.Switch.SWITCH_STYLE_M3;
+
     private static boolean isMd3(int styleValue) {
         return styleValue == STYLE_MD3;
+    }
+
+    private static boolean isMd3Switch(int styleValue) {
+        return styleValue == STYLE_MD3 || styleValue == SWITCH_STYLE_M3;
     }
 
     private int md3SelectedCount() {
         int n = 0;
         if (AppearanceConfig.newLoadingStyle.Bool()) n++;
         if (isMd3(NaConfig.INSTANCE.getSliderStyle().Int())) n++;
-        if (isMd3(NaConfig.INSTANCE.getSwitchStyle().Int())) n++;
+        if (isMd3Switch(NaConfig.INSTANCE.getSwitchStyle().Int())) n++;
         if (AppearanceConfig.newChatHeaderStyle.Bool()) n++;
         if (AppearanceConfig.newNavigationBarStyle.Bool()) n++;
         if (AppearanceConfig.m3ListItems.Bool()) n++;
@@ -1202,7 +1208,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
             leaveFloatingBottomNavigation();
         }
         NaConfig.INSTANCE.getSliderStyle().setConfigInt(enable ? STYLE_MD3 : 0);
-        NaConfig.INSTANCE.getSwitchStyle().setConfigInt(enable ? STYLE_MD3 : 0);
+        NaConfig.INSTANCE.getSwitchStyle().setConfigInt(enable ? SWITCH_STYLE_M3 : 0);
         if (avatarCornersPreviewCell != null) {
             avatarCornersPreviewCell.invalidate();
         }
