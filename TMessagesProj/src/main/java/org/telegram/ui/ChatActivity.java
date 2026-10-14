@@ -8,6 +8,7 @@
 
 package org.telegram.ui;
 
+import app.exteraless.chats.DeletedReplyQuote;
 import app.exteraless.chats.LinkedCustomEmoji;
 import app.exteraless.OpenExteraConfig;
 import app.exteraless.feed.FeedChannelAvatarMenu;
@@ -518,6 +519,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int nkbtn_report = 2041;
     private final static int nkbtn_clearDeleted = 2100;
     private final static int nkbtn_viewDeleted = 2101;
+    private final static int nkbtn_removeDeletedQuote = 2102;
 
     public int shareAlertDebugMode = DEBUG_SHARE_ALERT_MODE_NORMAL;
     public boolean shareAlertDebugTopicsSlowMotion;
@@ -48090,10 +48092,24 @@ public class ChatActivity extends BaseFragment implements
         }
     }
 
+    private void addRemoveDeletedQuoteOption(MessageObject message, ArrayList<Integer> icons, ArrayList<CharSequence> items, ArrayList<Integer> options) {
+        MessageObject target = selectedObjectToEditCaption != null ? selectedObjectToEditCaption : message;
+        if (chatMode == MODE_SCHEDULED || !DeletedReplyQuote.canRemove(target)) {
+            return;
+        }
+        items.add(LocaleController.getString(R.string.ClearQuote));
+        options.add(nkbtn_removeDeletedQuote);
+        icons.add(R.drawable.menu_quote_delete);
+    }
+
     private void nkbtn_onclick(int id) {
         // from "items"
         createUndoView();
         switch (id) {
+            case nkbtn_removeDeletedQuote: {
+                DeletedReplyQuote.remove(currentAccount, selectedObjectToEditCaption != null ? selectedObjectToEditCaption : selectedObject);
+                break;
+            }
             case nkbtn_repeat: {
                 repeatMessage(false,false);
                 break;
@@ -50736,6 +50752,9 @@ public class ChatActivity extends BaseFragment implements
                     items.add(LocaleController.getString(R.string.Edit));
                     options.add(OPTION_EDIT);
                     icons.add(R.drawable.msg_edit);
+                }
+                if (allowEdit) {
+                    addRemoveDeletedQuoteOption(message, icons, items, options);
                 }
                 if (ChatObject.isMonoForum(currentChat) && selectedObject.getGroupId() == 0 && selectedObjectGroup == null && message != null && message.messageOwner != null && message.messageOwner.suggested_post == null && message.messageOwner.action == null) {
                     items.add(LocaleController.getString(R.string.EditOfferAdd));

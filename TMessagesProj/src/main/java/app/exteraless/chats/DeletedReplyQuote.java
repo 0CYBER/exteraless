@@ -10,6 +10,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
 
@@ -32,6 +33,33 @@ public final class DeletedReplyQuote {
             this.user = user;
             this.chat = chat;
             this.messageId = messageId;
+        }
+    }
+
+    public static final class Prefix {
+
+        public final String text;
+        private final ArrayList<TLRPC.MessageEntity> entities;
+
+        Prefix(String text, ArrayList<TLRPC.MessageEntity> entities) {
+            this.text = text;
+            this.entities = entities;
+        }
+
+        public CharSequence prepend(CharSequence body) {
+            return TextUtils.isEmpty(body) ? text : TextUtils.concat(text, "\n", body);
+        }
+
+        public ArrayList<TLRPC.MessageEntity> prependEntities(CharSequence body, ArrayList<TLRPC.MessageEntity> bodyEntities) {
+            ArrayList<TLRPC.MessageEntity> result = new ArrayList<>(entities);
+            if (bodyEntities != null && !TextUtils.isEmpty(body)) {
+                int shift = text.length() + 1;
+                for (TLRPC.MessageEntity entity : bodyEntities) {
+                    entity.offset += shift;
+                    result.add(entity);
+                }
+            }
+            return result;
         }
     }
 
@@ -111,6 +139,124 @@ public final class DeletedReplyQuote {
         }
         params.replyToMsg = params.replyToTopMsg;
         params.replyQuote = null;
+    }
+
+    public static int quoteLength(MessageObject messageObject) {
+        if (messageObject == null || messageObject.messageOwner == null) {
+            return 0;
+        }
+        String text = messageObject.messageOwner.message;
+        ArrayList<TLRPC.MessageEntity> entities = messageObject.messageOwner.entities;
+        if (TextUtils.isEmpty(text) || entities == null || entities.isEmpty()) {
+            return 0;
+        }
+        int header = text.indexOf('\n');
+        if (header <= 0) {
+            return 0;
+        }
+        TLRPC.MessageEntity quote = null;
+        boolean bold = false;
+        for (TLRPC.MessageEntity entity : entities) {
+            if (entity.offset != 0) {
+                continue;
+            }
+            if (entity instanceof TLRPC.TL_messageEntityBlockquote && entity.collapsed) {
+                quote = entity;
+            } else if (entity instanceof TLRPC.TL_messageEntityBold && entity.length == header) {
+                bold = true;
+            }
+        }
+        if (quote == null || !bold || quote.length <= header || quote.length > text.length()) {
+            return 0;
+        }
+        if (quote.length < text.length() && text.charAt(quote.length) != '\n') {
+            return 0;
+        }
+        return quote.length;
+    }
+
+    public static Prefix prefix(int currentAccount, MessageObject messageObject) {
+        int length = quoteLength(messageObject);
+        if (length <= 0) {
+            return null;
+        }
+        MessagesController controller = MessagesController.getInstance(currentAccount);
+        ArrayList<TLRPC.MessageEntity> entities = new ArrayList<>();
+        for (TLRPC.MessageEntity entity : messageObject.messageOwner.entities) {
+            if (entity.offset + entity.length <= length) {
+                TLRPC.MessageEntity copy = copyForSend(controller, entity);
+                if (copy != null) {
+                    entities.add(copy);
+                }
+            }
+        }
+        return new Prefix(messageObject.messageOwner.message.substring(0, length), entities);
+    }
+
+    public static boolean canRemove(MessageObject messageObject) {
+        int length = quoteLength(messageObject);
+        if (length <= 0) {
+            return false;
+        }
+        if (!messageObject.isMediaEmpty()) {
+            return true;
+        }
+        String text = messageObject.messageOwner.message;
+        return length + 1 < text.length() && !TextUtils.isEmpty(text.substring(length + 1).trim());
+    }
+
+    public static void remove(int currentAccount, MessageObject messageObject) {
+        if (!canRemove(messageObject)) {
+            return;
+        }
+        int length = quoteLength(messageObject);
+        TLRPC.Message message = messageObject.messageOwner;
+        int cut = length < message.message.length() ? length + 1 : length;
+        MessagesController controller = MessagesController.getInstance(currentAccount);
+        ArrayList<TLRPC.MessageEntity> entities = new ArrayList<>();
+        for (TLRPC.MessageEntity entity : message.entities) {
+            int end = entity.offset + entity.length;
+            if (end <= cut) {
+                continue;
+            }
+            TLRPC.MessageEntity copy = copyForSend(controller, entity);
+            if (copy == null) {
+                continue;
+            }
+            int start = Math.max(entity.offset, cut);
+            copy.offset = start - cut;
+            copy.length = end - start;
+            entities.add(copy);
+        }
+        messageObject.editingMessage = message.message.substring(cut);
+        messageObject.editingMessageEntities = entities;
+        messageObject.editingMessageSearchWebPage = message.media instanceof TLRPC.TL_messageMediaWebPage;
+        SendMessagesHelper.getInstance(currentAccount).editMessage(messageObject, null, null, null, null, null, null, false, messageObject.hasMediaSpoilers(), null);
+    }
+
+    private static TLRPC.MessageEntity copyForSend(MessagesController controller, TLRPC.MessageEntity entity) {
+        if (entity instanceof TLRPC.TL_messageEntityMentionName) {
+            TLRPC.InputUser inputUser = controller.getInputUser(((TLRPC.TL_messageEntityMentionName) entity).user_id);
+            if (inputUser == null || inputUser instanceof TLRPC.TL_inputUserEmpty) {
+                return null;
+            }
+            TLRPC.TL_inputMessageEntityMentionName mention = new TLRPC.TL_inputMessageEntityMentionName();
+            mention.user_id = inputUser;
+            mention.offset = entity.offset;
+            mention.length = entity.length;
+            return mention;
+        }
+        try {
+            SerializedData out = new SerializedData(entity.getObjectSize());
+            entity.serializeToStream(out);
+            SerializedData in = new SerializedData(out.toByteArray());
+            TLRPC.MessageEntity copy = TLRPC.MessageEntity.TLdeserialize(in, in.readInt32(false), false);
+            out.cleanup();
+            in.cleanup();
+            return copy;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static TLRPC.TL_messageEntityBlockquote blockquote(int length) {

@@ -721,6 +721,7 @@ public class ChatActivityEnterView extends FrameLayout implements
     private boolean destroyed;
 
     private MessageObject editingMessageObject;
+    private app.exteraless.chats.DeletedReplyQuote.Prefix editingQuotePrefix;
     private boolean editingCaption;
 
     private TL_account.TL_businessChatLink editingBusinessLink;
@@ -8958,6 +8959,17 @@ public class ChatActivityEnterView extends FrameLayout implements
             return;
         }
         ArrayList<TLRPC.MessageEntity> entities = MediaDataController.getInstance(currentAccount).getEntities(message, supportsSendingNewEntities());
+        if (editingQuotePrefix != null) {
+            if (withMarkdown) {
+                entities = editingQuotePrefix.prependEntities(message[0], entities);
+                message[0] = editingQuotePrefix.prepend(message[0]);
+            } else {
+                String plain = messageEditText.getText().toString();
+                entities = editingQuotePrefix.prependEntities(plain, null);
+                message[0] = editingQuotePrefix.prepend(plain);
+                withMarkdown = true;
+            }
+        }
         if (!TextUtils.equals(message[0], editingMessageObject.messageText) || entities != null && !entities.isEmpty() || !editingMessageObject.messageOwner.entities.isEmpty() || editingMessageObject.messageOwner.media instanceof TLRPC.TL_messageMediaWebPage) {
             editingMessageObject.editingMessage = withMarkdown ? message[0] : messageEditText.getText().toString();
             editingMessageObject.editingMessageEntities = withMarkdown ? entities : new ArrayList<>();
@@ -11288,6 +11300,7 @@ public class ChatActivityEnterView extends FrameLayout implements
         createMessageEditText();
         boolean hadEditingMessage = editingMessageObject != null;
         editingMessageObject = messageObject;
+        editingQuotePrefix = null;
         editingCaption = caption;
         CharSequence textToSetWithKeyboard;
         if (editingMessageObject != null) {
@@ -11396,6 +11409,15 @@ public class ChatActivityEnterView extends FrameLayout implements
 
                 ArrayList<TLRPC.MessageEntity> entities = editingMessageObject.messageOwner.entities;
                 textToSetWithKeyboard = applyMessageEntities(entities, editingText, fontMetricsInt);
+                app.exteraless.chats.DeletedReplyQuote.Prefix quotePrefix = app.exteraless.chats.DeletedReplyQuote.prefix(currentAccount, editingMessageObject);
+                if (quotePrefix != null && textToSetWithKeyboard.length() >= quotePrefix.text.length()
+                        && TextUtils.equals(textToSetWithKeyboard.subSequence(0, quotePrefix.text.length()).toString(), quotePrefix.text)) {
+                    int quoteLength = quotePrefix.text.length();
+                    int cut = quoteLength < textToSetWithKeyboard.length() && textToSetWithKeyboard.charAt(quoteLength) == '\n' ? quoteLength + 1 : quoteLength;
+                    textToSetWithKeyboard = new SpannableStringBuilder(textToSetWithKeyboard, cut, textToSetWithKeyboard.length());
+                    editingQuotePrefix = quotePrefix;
+                    currentLimit = Math.max(0, currentLimit - quotePrefix.text.codePointCount(0, quoteLength) - 1);
+                }
             } else {
                 textToSetWithKeyboard = "";
             }
