@@ -355,6 +355,9 @@ object AppearanceConfig {
     @JvmField
     val playerMiniClose = addConfig("OEPlayerMiniClose", ConfigItem.configTypeBool, true)
 
+    @JvmField
+    val playerMiniTop = addConfig("OEPlayerMiniTop", ConfigItem.configTypeBool, false)
+
     @JvmStatic
     fun playerStyleItems(): List<ConfigItem> {
         ensureLoaded()

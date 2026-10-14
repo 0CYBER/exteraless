@@ -91,6 +91,7 @@
     <string name="OEPlayerMiniProgressBorder">边框</string>
     <string name="OEPlayerMiniProgressNone">无</string>
     <string name="OEPlayerMiniColors">颜色</string>
+    <string name="OEPlayerMiniMoveHint">长按迷你播放器并上下拖动即可移动它</string>
     <string name="OEPlayerMiniCompact">紧凑</string>
     <string name="OEPlayerMiniArtist">显示艺术家</string>
     <string name="OEPlayerMiniPrevious">「上一首」按钮</string>

@@ -117,6 +117,7 @@ public class PlayerStyleEditor extends LinearLayout {
         addHeader(R.string.OEPlayerStyleMini);
         miniPreview = PlayerMiniView.preview(context);
         addView(miniPreview, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, PlayerMiniView.HEIGHT_DP + 16));
+        addInfo(R.string.OEPlayerMiniMoveHint);
         addInfo(R.string.OEPlayerStyleCover);
         addSegmented(new String[]{
                 getString(R.string.OEPlayerMiniCoverRounded), getString(R.string.OEPlayerMiniCoverRound), getString(R.string.OEPlayerMiniCoverHidden)

@@ -210,6 +210,10 @@ public final class PlayerStyle {
         return item(AppearanceConfig.playerMiniClose).Bool();
     }
 
+    public static boolean miniTop() {
+        return item(AppearanceConfig.playerMiniTop).Bool();
+    }
+
     public static void reset() {
         for (ConfigItem item : AppearanceConfig.playerStyleItems()) {
             switch (item.type) {

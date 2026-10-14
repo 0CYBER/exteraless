@@ -2144,6 +2144,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             t -= dp(5 * Math.max(filterTabsVisibility, topPanelsVisibility));
             additionalPadding -= dp(5 * Math.max(filterTabsVisibility, topPanelsVisibility));
+            t += miniPlayerTopPadding;
 
             final int b = calculateListViewPaddingBottom();
             if (t != topPadding || b != getPaddingBottom()) {
@@ -9164,6 +9165,30 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     private float miniPlayerInset;
     private int miniPlayerPadding;
+    private int miniPlayerTopPadding;
+
+    @Override
+    public void setMiniPlayerTopInset(float inset, int padding) {
+        if (miniPlayerTopPadding == padding) {
+            return;
+        }
+        miniPlayerTopPadding = padding;
+        if (viewPages != null) {
+            for (int i = 0; i < viewPages.length; i++) {
+                if (viewPages[i] != null) {
+                    viewPages[i].listView.requestLayout();
+                }
+            }
+        }
+    }
+
+    @Override
+    public float getMiniPlayerTopAnchor() {
+        if (viewPages == null || viewPages[0] == null) {
+            return -1;
+        }
+        return viewPages[0].listView.topPadding - miniPlayerTopPadding + scrollYOffset;
+    }
 
     public void setMiniPlayerInset(float inset, int padding) {
         if (miniPlayerInset != inset) {

@@ -1542,7 +1542,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 	private void checkUi_listViewPadding() {
 		listView.setPadding(
 			0,
-			dp(ADDITIONAL_LIST_HEIGHT_DP) + actionBar.getMeasuredHeight() + (int) topPanelLayout.getAnimatedHeightWithPadding(dp(14)),
+			dp(ADDITIONAL_LIST_HEIGHT_DP) + actionBar.getMeasuredHeight() + (int) topPanelLayout.getAnimatedHeightWithPadding(dp(14)) + miniPlayerTopPadding,
 			0,
 			dp(ADDITIONAL_LIST_HEIGHT_DP) + navigationBarHeight + additionNavigationBarHeight + miniPlayerPadding
 		);
@@ -1552,6 +1552,26 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 
 	private float miniPlayerInset;
 	private int miniPlayerPadding;
+	private int miniPlayerTopPadding;
+
+	@Override
+	public void setMiniPlayerTopInset(float inset, int padding) {
+		if (miniPlayerTopPadding == padding) {
+			return;
+		}
+		miniPlayerTopPadding = padding;
+		if (listView != null && actionBar != null && topPanelLayout != null && emptyView != null) {
+			checkUi_listViewPadding();
+		}
+	}
+
+	@Override
+	public float getMiniPlayerTopAnchor() {
+		if (actionBar == null || topPanelLayout == null || actionBar.getMeasuredHeight() == 0) {
+			return -1;
+		}
+		return actionBar.getMeasuredHeight() + topPanelLayout.getAnimatedHeightWithPadding(dp(14));
+	}
 
 	@Override
 	public void setMiniPlayerInset(float inset, int padding) {

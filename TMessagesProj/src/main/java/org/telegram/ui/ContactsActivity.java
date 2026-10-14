@@ -1615,7 +1615,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
     private void checkUi_listViewPadding() {
         listView.setPadding(
             0,
-            dp(ADDITIONAL_LIST_HEIGHT_DP + 44) + actionBar.getMeasuredHeight(),
+            dp(ADDITIONAL_LIST_HEIGHT_DP + 44) + actionBar.getMeasuredHeight() + miniPlayerTopPadding,
             0,
             dp(ADDITIONAL_LIST_HEIGHT_DP) + navigationBarHeight + additionNavigationBarHeight + miniPlayerPadding
         );
@@ -1623,6 +1623,23 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
 
     private float miniPlayerInset;
     private int miniPlayerPadding;
+    private int miniPlayerTopPadding;
+
+    @Override
+    public void setMiniPlayerTopInset(float inset, int padding) {
+        if (miniPlayerTopPadding == padding) {
+            return;
+        }
+        miniPlayerTopPadding = padding;
+        if (listView != null && actionBar != null) {
+            checkUi_listViewPadding();
+        }
+    }
+
+    @Override
+    public float getMiniPlayerTopAnchor() {
+        return actionBar != null && actionBar.getMeasuredHeight() > 0 ? actionBar.getMeasuredHeight() + dp(44) : -1;
+    }
 
     @Override
     public void setMiniPlayerInset(float inset, int padding) {

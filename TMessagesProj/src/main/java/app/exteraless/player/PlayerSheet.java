@@ -204,6 +204,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     private boolean dragActive;
     private boolean coverAnimating;
     private boolean morphUnderlay;
+    private boolean morphAnchorBottom = true;
     private boolean insetsReady;
     private final int touchSlop;
 
@@ -864,6 +865,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         root.getLocationOnScreen(loc);
         mini.getCardRect(morphFrom);
         morphFrom.offset(-loc[0], -loc[1]);
+        morphAnchorBottom = morphFrom.centerY() > root.getHeight() / 2f;
         mini.getCoverRect(morphCoverFrom);
         morphCoverFrom.offset(-loc[0], -loc[1]);
         morphFromRadius = mini.getCardRadius();
@@ -928,7 +930,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         layout.setScaleX(s);
         layout.setScaleY(s);
         layout.setTranslationX(morphRect.left);
-        layout.setTranslationY(morphRect.bottom - layout.getHeight() * s);
+        layout.setTranslationY(morphAnchorBottom ? morphRect.bottom - layout.getHeight() * s : morphRect.top);
         layout.setAlpha(clamp01(p / 0.2f));
         backDrawable.setAlpha(dimBehind ? (int) (dimBehindAlpha * clamp01(p)) : 0);
         updateMorphBars();
@@ -1010,7 +1012,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         }
         canvas.save();
         float s = morphRect.width() / snapshot.getWidth();
-        canvas.translate(morphRect.left, morphRect.bottom - snapshot.getHeight() * s);
+        canvas.translate(morphRect.left, morphAnchorBottom ? morphRect.bottom - snapshot.getHeight() * s : morphRect.top);
         canvas.scale(s, s);
         morphPaint.setAlpha((int) (255 * a));
         canvas.drawBitmap(snapshot, 0, 0, morphPaint);

@@ -3,6 +3,8 @@ package app.exteraless.player;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -21,6 +23,8 @@ import android.text.TextUtils;
 import android.text.style.CharacterStyle;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
@@ -46,6 +50,8 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.TypefaceSpan;
 
 import java.util.ArrayList;
+
+import app.exteraless.appearance.AppearanceConfig;
 
 public class PlayerMiniView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 
@@ -100,6 +106,18 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     private float hostFactor = 1f;
     private float baseTranslation;
     private Runnable offsetListener;
+    private boolean dockTop;
+    private float dockProgress;
+    private float topTranslation;
+    private boolean hasTopTranslation;
+    private boolean dragging;
+    private float dragStartY;
+    private float dragOffset;
+    private float lastTouchY;
+    private VelocityTracker velocityTracker;
+    private ValueAnimator dockAnimator;
+    private ValueAnimator liftAnimator;
+    private float lift;
 
     public PlayerMiniView(Context context, BaseFragment fragment, Theme.ResourcesProvider resourcesProvider) {
         this(context, fragment, resourcesProvider, false);
@@ -142,7 +160,11 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
         card.setElevation(dp(6));
         if (!preview) {
             card.setOnClickListener(v -> Md3Player.open(fragment, this));
+            card.setOnLongClickListener(v -> startDrag());
+            card.setOnTouchListener(this::onCardTouch);
             card.setContentDescription(getString(R.string.OEPlayerOpen));
+            dockTop = PlayerStyle.miniTop();
+            dockProgress = dockTop ? 1f : 0f;
         }
         addView(card, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, HEIGHT_DP, Gravity.BOTTOM, 12, 0, 12, 12));
 
@@ -408,7 +430,8 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     }
 
     public boolean canTransition() {
-        return !preview && isAttachedToWindow() && getVisibility() == VISIBLE && shown && showProgress >= 1f && hostFactor >= 0.99f && card.getWidth() > 0 && cover.getVisibility() == VISIBLE;
+        return !preview && isAttachedToWindow() && getVisibility() == VISIBLE && shown && showProgress >= 1f && hostFactor >= 0.99f && card.getWidth() > 0 && cover.getVisibility() == VISIBLE
+                && !dragging && dockAnimator == null && lift == 0f;
     }
 
     public void getCardRect(RectF out) {
@@ -472,11 +495,159 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     }
 
     public float getVisibleOffset() {
-        return (dp(heightDp) + dp(8)) * showProgress * hostFactor;
+        return (dp(heightDp) + dp(8)) * showProgress * hostFactor * (1f - Utilities.clamp01(dockProgress));
     }
 
     public int getTargetOffset() {
-        return shown && hostFactor > 0.5f ? dp(heightDp) + dp(8) : 0;
+        return shown && hostFactor > 0.5f && !dockTop ? dp(heightDp) + dp(8) : 0;
+    }
+
+    public float getVisibleTopOffset() {
+        return (dp(heightDp) + dp(16)) * showProgress * hostFactor * Utilities.clamp01(dockProgress);
+    }
+
+    public int getTargetTopOffset() {
+        return shown && dockTop ? dp(heightDp) + dp(16) : 0;
+    }
+
+    public void setTopAnchor(float y) {
+        if (preview || getHeight() == 0) {
+            return;
+        }
+        float translation = y + dp(8) - getTop() - card.getTop();
+        hasTopTranslation = true;
+        if (topTranslation != translation) {
+            topTranslation = translation;
+            if (dockProgress != 0f || dragging) {
+                applyTransform();
+            }
+        }
+    }
+
+    private float dockTranslation() {
+        return baseTranslation + (topTranslation - baseTranslation) * dockProgress;
+    }
+
+    private boolean onCardTouch(View v, MotionEvent ev) {
+        int action = ev.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN) {
+            if (velocityTracker == null) {
+                velocityTracker = VelocityTracker.obtain();
+            } else {
+                velocityTracker.clear();
+            }
+        }
+        if (velocityTracker != null) {
+            MotionEvent copy = MotionEvent.obtain(ev);
+            copy.setLocation(ev.getRawX(), ev.getRawY());
+            velocityTracker.addMovement(copy);
+            copy.recycle();
+        }
+        lastTouchY = ev.getRawY();
+        if (!dragging) {
+            return false;
+        }
+        if (action == MotionEvent.ACTION_MOVE) {
+            setDragOffset(lastTouchY - dragStartY);
+        } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            float velocity = 0f;
+            if (action == MotionEvent.ACTION_UP && velocityTracker != null) {
+                velocityTracker.computeCurrentVelocity(1000);
+                velocity = velocityTracker.getYVelocity();
+            }
+            MotionEvent cancel = MotionEvent.obtain(ev);
+            cancel.setAction(MotionEvent.ACTION_CANCEL);
+            card.onTouchEvent(cancel);
+            cancel.recycle();
+            endDrag(velocity);
+        }
+        return true;
+    }
+
+    private boolean startDrag() {
+        if (dragging || !shown || showProgress < 1f || hostFactor < 0.99f || !hasTopTranslation) {
+            return false;
+        }
+        if (dockAnimator != null) {
+            dockAnimator.cancel();
+        }
+        dragging = true;
+        dragStartY = lastTouchY;
+        dragOffset = 0f;
+        card.setPressed(false);
+        if (card.getParent() != null) {
+            card.getParent().requestDisallowInterceptTouchEvent(true);
+        }
+        animateLift(true);
+        return true;
+    }
+
+    private void setDragOffset(float offset) {
+        float base = dockTranslation();
+        float min = Math.min(baseTranslation, topTranslation) - dp(16);
+        float max = Math.max(baseTranslation, topTranslation) + dp(16);
+        dragOffset = Math.max(min, Math.min(max, base + offset)) - base;
+        applyTransform();
+    }
+
+    private void endDrag(float velocity) {
+        dragging = false;
+        float range = baseTranslation - topTranslation;
+        float position = dockTranslation() + dragOffset;
+        float progress = range > 0 ? (baseTranslation - position) / range : dockProgress;
+        boolean top = Math.abs(velocity) > dp(800) ? velocity < 0 : progress > 0.5f;
+        dragOffset = 0f;
+        dockProgress = progress;
+        animateLift(false);
+        setDockTop(top);
+    }
+
+    private void setDockTop(boolean top) {
+        if (dockTop != top) {
+            dockTop = top;
+            AppearanceConfig.playerMiniTop.setConfigBool(top);
+        }
+        if (dockAnimator != null) {
+            dockAnimator.cancel();
+        }
+        ValueAnimator animator = ValueAnimator.ofFloat(dockProgress, top ? 1f : 0f);
+        animator.addUpdateListener(a -> {
+            dockProgress = (float) a.getAnimatedValue();
+            applyTransform();
+            notifyOffset();
+        });
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (dockAnimator == animation) {
+                    dockAnimator = null;
+                }
+            }
+        });
+        animator.setDuration(380);
+        animator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
+        dockAnimator = animator;
+        animator.start();
+        notifyOffset();
+    }
+
+    private void animateLift(boolean up) {
+        if (liftAnimator != null) {
+            liftAnimator.cancel();
+        }
+        liftAnimator = ValueAnimator.ofFloat(lift, up ? 1f : 0f);
+        liftAnimator.addUpdateListener(a -> setLift((float) a.getAnimatedValue()));
+        liftAnimator.setDuration(up ? 180 : 260);
+        liftAnimator.setInterpolator(CubicBezierInterpolator.DEFAULT);
+        liftAnimator.start();
+    }
+
+    private void setLift(float value) {
+        lift = value;
+        float scale = 1f + 0.03f * value;
+        card.setScaleX(scale);
+        card.setScaleY(scale);
+        card.setTranslationZ(dp(8) * value);
     }
 
     public void setHostPosition(float translation, float factor) {
@@ -491,7 +662,8 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
 
     private void applyTransform() {
         float p = showProgress * hostFactor;
-        setTranslationY(baseTranslation + dp(24) * (1f - p));
+        float direction = 1f - 2f * Utilities.clamp01(dockProgress);
+        setTranslationY(dockTranslation() + dragOffset + dp(24) * (1f - p) * direction);
         setAlpha(p);
         setVisibility(p > 0f ? VISIBLE : GONE);
     }
@@ -530,6 +702,24 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
             colorAnimator.cancel();
             colorAnimator = null;
         }
+        if (dockAnimator != null) {
+            dockAnimator.cancel();
+            dockProgress = dockTop ? 1f : 0f;
+        }
+        if (liftAnimator != null) {
+            liftAnimator.cancel();
+            liftAnimator = null;
+        }
+        if (dragging) {
+            dragging = false;
+            dragOffset = 0f;
+        }
+        setLift(0f);
+        if (velocityTracker != null) {
+            velocityTracker.recycle();
+            velocityTracker = null;
+        }
+        applyTransform();
         if (preview) {
             return;
         }

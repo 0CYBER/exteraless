@@ -25,6 +25,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -61,6 +62,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.EdgeToEdgeSupportMode;
@@ -467,6 +469,17 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         miniPlayer = new app.exteraless.player.PlayerMiniView(context, this, resourceProvider);
         miniPlayer.setOffsetListener(this::onMiniPlayerOffsetChanged);
         contentView.addView(miniPlayer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, app.exteraless.player.PlayerMiniView.HEIGHT_DP + 16, Gravity.BOTTOM));
+        contentView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(@NonNull View v) {
+                v.getViewTreeObserver().addOnPreDrawListener(miniPlayerAnchorListener);
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(@NonNull View v) {
+                v.getViewTreeObserver().removeOnPreDrawListener(miniPlayerAnchorListener);
+            }
+        });
 
         tabsViewWrapper = new FrameLayout(context);
         tabsViewWrapper.setOnClickListener(v -> {});
@@ -1051,6 +1064,14 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         default void setMiniPlayerInset(float inset, int padding) {
 
         }
+
+        default void setMiniPlayerTopInset(float inset, int padding) {
+
+        }
+
+        default float getMiniPlayerTopAnchor() {
+            return -1;
+        }
     }
 
     private <T extends BaseFragment> T prepareTabFragment(T fragment) {
@@ -1058,6 +1079,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             ((TabFragmentDelegate) fragment).setParentTabsGlassInvalidationCallback(this::invalidateTabsGlass);
             if (miniPlayer != null) {
                 ((TabFragmentDelegate) fragment).setMiniPlayerInset(miniPlayer.getVisibleOffset(), miniPlayer.getTargetOffset());
+                ((TabFragmentDelegate) fragment).setMiniPlayerTopInset(miniPlayer.getVisibleTopOffset(), miniPlayer.getTargetTopOffset());
             }
         }
         return fragment;
@@ -1279,7 +1301,36 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         final int gap = hidden || MainTabsUiHelper.isMaterial3NavigationBar() ? dp(12) : dp(4);
         final float factor = hidden ? 1f : animatorTabsVisible.getFloatValue();
         miniPlayer.setHostPosition(-(navigationBarHeight + updateLayoutHeight + tabsHeight + gap - dp(12)), factor);
+        updateMiniPlayerTopAnchor();
         onMiniPlayerOffsetChanged();
+    }
+
+    private final ViewTreeObserver.OnPreDrawListener miniPlayerAnchorListener = () -> {
+        updateMiniPlayerTopAnchor();
+        return true;
+    };
+
+    private void updateMiniPlayerTopAnchor() {
+        if (miniPlayer == null || viewPager == null) {
+            return;
+        }
+        final float position = viewPager.getPositionAnimated();
+        final int from = (int) Math.floor(position);
+        final int to = (int) Math.ceil(position);
+        final float fromAnchor = getMiniPlayerTopAnchor(from);
+        final float toAnchor = to == from ? fromAnchor : getMiniPlayerTopAnchor(to);
+        miniPlayer.setTopAnchor(lerp(fromAnchor, toAnchor, position - from));
+    }
+
+    private float getMiniPlayerTopAnchor(int position) {
+        final FragmentState state = fragmentsArr.get(position);
+        if (state != null && state.fragment instanceof TabFragmentDelegate) {
+            final float anchor = ((TabFragmentDelegate) state.fragment).getMiniPlayerTopAnchor();
+            if (anchor >= 0) {
+                return anchor;
+            }
+        }
+        return AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight();
     }
 
     private void onMiniPlayerOffsetChanged() {
@@ -1288,10 +1339,13 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         }
         final float inset = miniPlayer.getVisibleOffset();
         final int padding = miniPlayer.getTargetOffset();
+        final float topInset = miniPlayer.getVisibleTopOffset();
+        final int topPadding = miniPlayer.getTargetTopOffset();
         for (int a = 0, N = fragmentsArr.size(); a < N; a++) {
             final BaseFragment fragment = fragmentsArr.valueAt(a).fragment;
             if (fragment instanceof TabFragmentDelegate) {
                 ((TabFragmentDelegate) fragment).setMiniPlayerInset(inset, padding);
+                ((TabFragmentDelegate) fragment).setMiniPlayerTopInset(topInset, topPadding);
             }
         }
     }
