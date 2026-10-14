@@ -29891,7 +29891,11 @@ public class ChatActivity extends BaseFragment implements
                     sentBotStart = true;
                 }
             } else {
+                if (bottomOverlayStartButton != null) {
+                    bottomOverlayStartButton.setVisibility(View.INVISIBLE);
+                }
                 bottomOverlayChatText.setText(LocaleController.getString(R.string.DeleteThisChat));
+                bottomOverlayChatText.setVisibility(View.VISIBLE);
             }
         }
 
