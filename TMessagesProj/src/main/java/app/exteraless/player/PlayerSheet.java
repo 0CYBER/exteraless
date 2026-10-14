@@ -192,6 +192,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     private float lyricsFraction;
     private ValueAnimator lyricsAnimator;
     private String lyricsKey;
+    private Lyrics fileLyrics;
     private boolean seeking;
     private float seekProgress;
     private Boolean lightBars;
@@ -1389,39 +1390,51 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             return;
         }
         lyricsKey = key;
+        fileLyrics = null;
         if (PlayerArt.isPlaying(mo)) {
             AudioInfo info = MediaController.getInstance().getAudioInfo();
             Lyrics embedded = info != null ? Lyrics.parse(info.getLyrics(), Lyrics.SOURCE_FILE) : null;
             if (embedded != null) {
                 showLyrics(embedded);
-                return;
+                if (embedded.synced || embedded.instrumental) {
+                    return;
+                }
+                fileLyrics = embedded;
             }
         }
         OnlineLyrics.Query q = query(mo);
         if (!q.valid()) {
-            lyricsView.showState(LyricsView.STATE_NOT_FOUND);
-            sourceView.setText(null);
+            if (fileLyrics == null) {
+                lyricsView.showState(LyricsView.STATE_NOT_FOUND);
+                sourceView.setText(null);
+            }
             return;
         }
         Lyrics cached = OnlineLyrics.cached(q);
-        if (cached != null) {
+        if (cached != null && replacesFileLyrics(cached)) {
             showLyrics(cached);
             return;
         }
-        lyricsView.showState(LyricsView.STATE_LOADING);
-        sourceView.setText(null);
+        if (fileLyrics == null) {
+            lyricsView.showState(LyricsView.STATE_LOADING);
+            sourceView.setText(null);
+        }
         OnlineLyrics.loadCached(q, (lyrics, status) -> {
             if (!TextUtils.equals(key, currentKey)) {
                 return;
             }
-            if (lyrics != null) {
+            if (lyrics != null && replacesFileLyrics(lyrics)) {
                 showLyrics(lyrics);
             } else if (AppearanceConfig.lrclibAllowed.Bool()) {
                 fetchLyrics();
-            } else {
+            } else if (fileLyrics == null) {
                 lyricsView.showState(LyricsView.STATE_OFFER);
             }
         });
+    }
+
+    private boolean replacesFileLyrics(Lyrics lyrics) {
+        return fileLyrics == null || lyrics.synced;
     }
 
     private void fetchLyrics() {
@@ -1431,23 +1444,23 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         }
         String key = currentKey;
         OnlineLyrics.Query q = query(mo);
-        if (!q.valid()) {
-            lyricsView.showState(LyricsView.STATE_NOT_FOUND);
+        if (!q.valid() || OnlineLyrics.knownMissing(q)) {
+            if (fileLyrics == null) {
+                lyricsView.showState(LyricsView.STATE_NOT_FOUND);
+            }
             return;
         }
-        if (OnlineLyrics.knownMissing(q)) {
-            lyricsView.showState(LyricsView.STATE_NOT_FOUND);
-            return;
+        if (fileLyrics == null) {
+            lyricsView.showState(LyricsView.STATE_LOADING);
+            sourceView.setText(null);
         }
-        lyricsView.showState(LyricsView.STATE_LOADING);
-        sourceView.setText(null);
         OnlineLyrics.fetch(q, (lyrics, status) -> {
             if (!TextUtils.equals(key, currentKey)) {
                 return;
             }
-            if (lyrics != null) {
+            if (lyrics != null && replacesFileLyrics(lyrics)) {
                 showLyrics(lyrics);
-            } else {
+            } else if (fileLyrics == null) {
                 lyricsView.showState(status == OnlineLyrics.ERROR ? LyricsView.STATE_ERROR : LyricsView.STATE_NOT_FOUND);
             }
         });
