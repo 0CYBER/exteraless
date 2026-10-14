@@ -44,6 +44,7 @@
     <string name="OEPlayerCoverSize">Tamaño</string>
     <string name="OEPlayerCoverRadius">Redondeo</string>
     <string name="OEPlayerDiscSpin">Girar al reproducir</string>
+    <string name="OEPlayerCoverExtend">Extender la portada hacia abajo</string>
     <string name="OEPlayerCoverSwipe">Desliza la portada para cambiar de pista</string>
     <string name="OEPlayerStyleTitleSection">Título</string>
     <string name="OEPlayerAlignStart">Izquierda</string>

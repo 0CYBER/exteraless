@@ -44,6 +44,7 @@
     <string name="OEPlayerCoverSize">Rozmiar</string>
     <string name="OEPlayerCoverRadius">Zaokrąglenie</string>
     <string name="OEPlayerDiscSpin">Obracaj podczas odtwarzania</string>
+    <string name="OEPlayerCoverExtend">Przedłużaj okładkę w dół</string>
     <string name="OEPlayerCoverSwipe">Przesuń okładkę, aby zmienić utwór</string>
     <string name="OEPlayerStyleTitleSection">Tytuł</string>
     <string name="OEPlayerAlignStart">Do lewej</string>

@@ -44,6 +44,7 @@
     <string name="OEPlayerCoverSize">Размер</string>
     <string name="OEPlayerCoverRadius">Скругление</string>
     <string name="OEPlayerDiscSpin">Вращать во время игры</string>
+    <string name="OEPlayerCoverExtend">Продолжать обложку вниз</string>
     <string name="OEPlayerCoverSwipe">Листать треки обложкой</string>
     <string name="OEPlayerStyleTitleSection">Название</string>
     <string name="OEPlayerAlignStart">Слева</string>

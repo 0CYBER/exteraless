@@ -16,6 +16,8 @@ import android.graphics.Shader;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.GradientDrawable;
@@ -1068,6 +1070,9 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             coverScrim.drawMorph(canvas, morphCover, clamp01(p));
         }
         canvas.restore();
+        if (morphUnderlay) {
+            coverScrim.drawMorphExtension(canvas, morphCover, clamp01(p));
+        }
     }
 
     private void detach() {
@@ -1196,6 +1201,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             animateColors(PlayerColors.fromSeed(seed, dark), true);
         }
         updateBackdrop();
+        coverScrim.invalidate();
     }
 
     private void updateHeader() {
@@ -2044,6 +2050,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         cover.setDisc(style == PlayerStyle.COVER_DISC, colors.surface);
         cover.invalidateOutline();
         coverScrim.setVisibility(framed ? View.GONE : View.VISIBLE);
+        coverScrim.invalidate();
 
         int titleSize = PlayerStyle.titleSize();
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, titleSize == 0 ? 22 : titleSize == 2 ? 31 : 26);
@@ -2186,6 +2193,16 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         private LinearGradient gradient;
         private int gradientKey;
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint extensionPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
+        private final Paint shadePaint = new Paint();
+        private final Rect extensionSrc = new Rect();
+        private final RectF extensionDst = new RectF();
+        private Bitmap extension;
+        private Bitmap extensionSource;
+        private int extensionKey;
+        private int extensionFadeRows;
+        private LinearGradient shade;
+        private int shadeKey;
 
         CoverScrim(Context context) {
             super(context);
@@ -2198,7 +2215,11 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             if (w == 0 || h == 0) {
                 return;
             }
-            drawScrim(canvas, w, h, 1f);
+            boolean extended = prepareExtension(w, h);
+            drawScrim(canvas, w, h, 1f, extended);
+            if (extended) {
+                drawExtension(canvas, w, h, cover.getAlpha());
+            }
         }
 
         void drawMorph(Canvas canvas, RectF bounds, float alpha) {
@@ -2210,14 +2231,136 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             canvas.save();
             canvas.translate(bounds.left, bounds.top);
             canvas.scale(bounds.width() / w, bounds.height() / h);
-            drawScrim(canvas, w, h, alpha);
+            drawScrim(canvas, w, h, alpha, prepareExtension(w, h));
             canvas.restore();
         }
 
-        private void drawScrim(Canvas canvas, int w, int h, float alpha) {
+        void drawMorphExtension(Canvas canvas, RectF bounds, float alpha) {
+            int w = getWidth();
+            int h = getHeight();
+            if (w == 0 || h == 0 || alpha <= 0f || !prepareExtension(w, h)) {
+                return;
+            }
+            canvas.save();
+            canvas.translate(bounds.left, bounds.top);
+            canvas.scale(bounds.width() / w, bounds.height() / h);
+            drawExtension(canvas, w, h, alpha);
+            canvas.restore();
+        }
+
+        private int extensionBelow(int h) {
+            return Math.max(0, layout.getHeight() - getTop() - h);
+        }
+
+        private int extensionFade(int h) {
+            return Math.min(Math.round(h * 0.22f), dp(120));
+        }
+
+        private boolean prepareExtension(int w, int h) {
+            if (coverStyle != PlayerStyle.COVER_WIDE || !PlayerStyle.coverExtend()) {
+                return false;
+            }
+            int below = extensionBelow(h);
+            Bitmap source = cover.getImageReceiver().getBitmap();
+            if (below <= 0 || source == null || source.isRecycled() || source.getWidth() <= 0 || source.getHeight() <= 0) {
+                return false;
+            }
+            int key = (w * 31 + h) * 31 + below;
+            if (extension != null && source == extensionSource && key == extensionKey) {
+                return true;
+            }
+            Bitmap built = buildExtension(source, w, h, below);
+            if (built == null) {
+                return false;
+            }
+            extension = built;
+            extensionSource = source;
+            extensionKey = key;
+            return true;
+        }
+
+        private Bitmap buildExtension(Bitmap source, int w, int h, int below) {
+            try {
+                Bitmap src = source;
+                if (Build.VERSION.SDK_INT >= 26 && src.getConfig() == Bitmap.Config.HARDWARE) {
+                    src = src.copy(Bitmap.Config.ARGB_8888, false);
+                    if (src == null) {
+                        return null;
+                    }
+                }
+                int sw = src.getWidth();
+                int sh = src.getHeight();
+                float scale = Math.max(w / (float) sw, h / (float) sh);
+                float visibleW = w / scale;
+                float left = (sw - visibleW) / 2f;
+                float bottom = (sh + h / scale) / 2f;
+                int fade = extensionFade(h);
+                int mirror = Math.max(1, Math.min(below, h / 2));
+                int width = 32;
+                float k = width / (float) w;
+                int fadeRows = Math.max(2, Math.round(fade * k));
+                int mirrorRows = Math.max(2, Math.round(mirror * k));
+                Bitmap out = Bitmap.createBitmap(width, fadeRows + mirrorRows, Bitmap.Config.ARGB_8888);
+                Canvas c = new Canvas(out);
+                Paint p = new Paint(Paint.FILTER_BITMAP_FLAG);
+                int srcLeft = Math.max(0, Math.round(left));
+                int srcRight = Math.min(sw, Math.round(left + visibleW));
+                int srcBottom = Math.min(sh, Math.round(bottom));
+                c.drawBitmap(src, new Rect(srcLeft, Math.max(0, Math.round(bottom - fade / scale)), srcRight, srcBottom), new Rect(0, 0, width, fadeRows), p);
+                c.save();
+                c.scale(1f, -1f, 0, fadeRows + mirrorRows / 2f);
+                c.drawBitmap(src, new Rect(srcLeft, Math.max(0, Math.round(bottom - mirror / scale)), srcRight, srcBottom), new Rect(0, fadeRows, width, fadeRows + mirrorRows), p);
+                c.restore();
+                Utilities.stackBlurBitmap(out, Math.max(3, width / 5));
+                Utilities.stackBlurBitmap(out, Math.max(3, width / 5));
+                Paint mask = new Paint();
+                mask.setShader(new LinearGradient(0, 0, 0, fadeRows, 0, 0xff000000, Shader.TileMode.CLAMP));
+                mask.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
+                c.drawRect(0, 0, width, fadeRows, mask);
+                extensionFadeRows = fadeRows;
+                return out;
+            } catch (Throwable e) {
+                return null;
+            }
+        }
+
+        private void drawExtension(Canvas canvas, int w, int h, float alpha) {
+            Bitmap bitmap = extension;
+            if (bitmap == null || bitmap.isRecycled() || alpha <= 0f) {
+                return;
+            }
+            int below = extensionBelow(h);
+            int fade = extensionFade(h);
+            int bw = bitmap.getWidth();
+            extensionPaint.setAlpha((int) (255 * alpha));
+            extensionSrc.set(0, 0, bw, extensionFadeRows);
+            extensionDst.set(0, h - fade, w, h);
+            canvas.drawBitmap(bitmap, extensionSrc, extensionDst, extensionPaint);
+            extensionSrc.set(0, extensionFadeRows, bw, bitmap.getHeight());
+            extensionDst.set(0, h, w, h + below);
+            canvas.drawBitmap(bitmap, extensionSrc, extensionDst, extensionPaint);
+            int surface = colors.surface;
+            int key = ((surface * 31 + h) * 31 + below) * 31 + fade;
+            if (shade == null || shadeKey != key) {
+                shadeKey = key;
+                float total = fade + below;
+                float mid = Math.min(below, dp(150));
+                shade = new LinearGradient(0, h - fade, 0, h + below, new int[]{
+                        ColorUtils.setAlphaComponent(surface, 0),
+                        ColorUtils.setAlphaComponent(surface, 0x4d),
+                        ColorUtils.setAlphaComponent(surface, 0xa6),
+                        ColorUtils.setAlphaComponent(surface, 0xcc)
+                }, new float[]{0f, fade / total, (fade + mid) / total, 1f}, Shader.TileMode.CLAMP);
+            }
+            shadePaint.setShader(shade);
+            shadePaint.setAlpha((int) (255 * alpha));
+            canvas.drawRect(0, h - fade, w, h + below, shadePaint);
+        }
+
+        private void drawScrim(Canvas canvas, int w, int h, float alpha, boolean extended) {
             int surface = colors.surface;
             boolean full = coverStyle == PlayerStyle.COVER_FULL;
-            int key = (surface * 31 + h) * 31 + (full ? 1 : 0);
+            int key = ((surface * 31 + h) * 31 + (full ? 1 : 0)) * 31 + (extended ? 1 : 0);
             if (gradient == null || gradientKey != key) {
                 gradientKey = key;
                 if (full) {
@@ -2228,6 +2371,11 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                             ColorUtils.setAlphaComponent(surface, 0xe6),
                             surface
                     }, new float[]{0f, 0.2f, 0.36f, 0.7f, 1f}, Shader.TileMode.CLAMP);
+                } else if (extended) {
+                    gradient = new LinearGradient(0, 0, 0, h, new int[]{
+                            ColorUtils.setAlphaComponent(surface, 0x8c),
+                            ColorUtils.setAlphaComponent(surface, 0)
+                    }, new float[]{0f, 0.26f}, Shader.TileMode.CLAMP);
                 } else {
                     gradient = new LinearGradient(0, 0, 0, h, new int[]{
                             ColorUtils.setAlphaComponent(surface, 0x8c),
@@ -2468,6 +2616,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                 lastWidth = width;
                 lastHeight = height;
                 backgroundGradient = null;
+                coverScrim.invalidate();
             }
             setMeasuredDimension(width, height);
         }

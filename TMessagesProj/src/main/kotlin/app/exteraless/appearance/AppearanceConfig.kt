@@ -329,6 +329,9 @@ object AppearanceConfig {
     val playerBackground = addConfig("OEPlayerBackground", ConfigItem.configTypeInt, 0)
 
     @JvmField
+    val playerCoverExtend = addConfig("OEPlayerCoverExtend", ConfigItem.configTypeBool, true)
+
+    @JvmField
     val playerMiniCover = addConfig("OEPlayerMiniCover", ConfigItem.configTypeInt, 0)
 
     @JvmField
@@ -365,7 +368,7 @@ object AppearanceConfig {
             playerCoverStyle, playerCoverSize, playerCoverRadius, playerDiscSpin, playerCoverSwipe,
             playerTitleAlign, playerTitleSize, playerTitleAbove, playerOrder, playerShowActions,
             playerShowModes, playerShowLike, playerShowSource, playerWavy, playerControlsSize,
-            playerColors, playerBackground, playerMiniCover, playerMiniShape, playerMiniProgress,
+            playerColors, playerBackground, playerCoverExtend, playerMiniCover, playerMiniShape, playerMiniProgress,
             playerMiniColors, playerMiniCompact, playerMiniArtist, playerMiniPrevious, playerMiniNext,
             playerMiniClose
         )

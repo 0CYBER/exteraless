@@ -76,6 +76,10 @@ public final class PlayerStyle {
         return item(AppearanceConfig.playerCoverSwipe).Bool();
     }
 
+    public static boolean coverExtend() {
+        return item(AppearanceConfig.playerCoverExtend).Bool();
+    }
+
     public static boolean titleCentered() {
         return item(AppearanceConfig.playerTitleAlign).Int() == 1;
     }

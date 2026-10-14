@@ -59,6 +59,7 @@ public class PlayerStyleEditor extends LinearLayout {
     private View backgroundGroup;
     private OrderList orderList;
     private PlayerMiniView miniPreview;
+    private View extendRow;
 
     public PlayerStyleEditor(Context context, PlayerColors colors, Listener listener) {
         super(context);
@@ -78,6 +79,7 @@ public class PlayerStyleEditor extends LinearLayout {
                 PlayerStyle::coverRadiusDp, value -> AppearanceConfig.playerCoverRadius.setConfigInt(value));
         spinRow = addToggle(R.string.OEPlayerDiscSpin, AppearanceConfig.playerDiscSpin);
         swipeRow = addToggle(R.string.OEPlayerCoverSwipe, AppearanceConfig.playerCoverSwipe);
+        extendRow = addToggle(R.string.OEPlayerCoverExtend, AppearanceConfig.playerCoverExtend);
 
         addHeader(R.string.OEPlayerStyleTitleSection);
         addSegmented(new String[]{getString(R.string.OEPlayerAlignStart), getString(R.string.OEPlayerAlignCenter)},
@@ -185,6 +187,7 @@ public class PlayerStyleEditor extends LinearLayout {
         setVisible(radiusRow, style == PlayerStyle.COVER_CARD);
         setVisible(spinRow, style == PlayerStyle.COVER_DISC);
         setVisible(swipeRow, framed);
+        setVisible(extendRow, style == PlayerStyle.COVER_WIDE);
         setVisible(positionGroup, framed);
         setVisible(backgroundGroup, style != PlayerStyle.COVER_FULL);
     }

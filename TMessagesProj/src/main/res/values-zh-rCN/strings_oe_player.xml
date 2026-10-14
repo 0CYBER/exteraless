@@ -44,6 +44,7 @@
     <string name="OEPlayerCoverSize">大小</string>
     <string name="OEPlayerCoverRadius">圆角</string>
     <string name="OEPlayerDiscSpin">播放时旋转</string>
+    <string name="OEPlayerCoverExtend">向下延伸封面</string>
     <string name="OEPlayerCoverSwipe">滑动封面切换曲目</string>
     <string name="OEPlayerStyleTitleSection">标题</string>
     <string name="OEPlayerAlignStart">左对齐</string>

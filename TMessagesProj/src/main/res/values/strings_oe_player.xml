@@ -44,6 +44,7 @@
     <string name="OEPlayerCoverSize">Size</string>
     <string name="OEPlayerCoverRadius">Corner radius</string>
     <string name="OEPlayerDiscSpin">Spin while playing</string>
+    <string name="OEPlayerCoverExtend">Extend the cover downward</string>
     <string name="OEPlayerCoverSwipe">Swipe the cover to switch tracks</string>
     <string name="OEPlayerStyleTitleSection">Title</string>
     <string name="OEPlayerAlignStart">Left</string>

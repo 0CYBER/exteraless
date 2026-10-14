@@ -44,6 +44,7 @@
     <string name="OEPlayerCoverSize">الحجم</string>
     <string name="OEPlayerCoverRadius">استدارة الزوايا</string>
     <string name="OEPlayerDiscSpin">الدوران أثناء التشغيل</string>
+    <string name="OEPlayerCoverExtend">تمديد الغلاف للأسفل</string>
     <string name="OEPlayerCoverSwipe">اسحب الغلاف لتبديل المقاطع</string>
     <string name="OEPlayerStyleTitleSection">العنوان</string>
     <string name="OEPlayerAlignStart">يسار</string>
