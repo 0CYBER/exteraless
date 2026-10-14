@@ -24201,7 +24201,18 @@ public class ChatActivity extends BaseFragment implements
                 messagesDict[0].put(newMsgId, obj);
                 obj.messageOwner.id = newMsgId;
                 obj.messageOwner.send_state = MessageObject.MESSAGE_SEND_STATE_SENT;
-                obj.forceUpdate = mediaUpdated;
+                boolean textUpdated = false;
+                if (newMsgObj != null && !TextUtils.isEmpty(newMsgObj.message)) {
+                    if (obj.type == MessageObject.TYPE_TEXT || obj.type == MessageObject.TYPE_EMOJIS) {
+                        obj.applyNewText();
+                        textUpdated = true;
+                    } else if (obj.caption != null) {
+                        obj.caption = null;
+                        obj.generateCaption();
+                        textUpdated = true;
+                    }
+                }
+                obj.forceUpdate = mediaUpdated || textUpdated;
                 addReplyMessageOwner(obj, msgId);
                 if (args.length >= 6) {
                     obj.applyMediaExistanceFlags((Integer) args[5]);
