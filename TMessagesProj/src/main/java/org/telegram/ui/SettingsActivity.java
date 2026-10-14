@@ -259,6 +259,11 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         super.onResume();
         Bulletin.Delegate delegate = new Bulletin.Delegate() {
             @Override
+            public int getTopOffset(int tag) {
+                return AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight();
+            }
+
+            @Override
             public int getBottomOffset(int tag) {
                 return navigationBarHeight + additionNavigationBarHeight;
             }
