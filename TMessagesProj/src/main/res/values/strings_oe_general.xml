@@ -211,4 +211,6 @@
     <string name="OEUpdaterChannelStableInfo">New releases on GitHub are checked every 6 hours.</string>
     <string name="OEUpdaterChannelBetaInfo">Also offers GitHub pre-releases before they become releases.</string>
     <string name="OEUpdaterAllReleases">All releases on GitHub</string>
+    <string name="OELiteFollowSystemSaver">Follow system battery saver</string>
+    <string name="OELiteFollowSystemSaverInfo">Power saving turns on together with the system battery saver.</string>
 </resources>

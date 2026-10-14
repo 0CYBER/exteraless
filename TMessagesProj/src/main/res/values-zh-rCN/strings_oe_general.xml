@@ -149,4 +149,6 @@
     <string name="OEUpdaterChannelStableInfo">每 6 小时检查 GitHub 上的新版本。</string>
     <string name="OEUpdaterChannelBetaInfo">还会提供 GitHub 上的预发布版本。</string>
     <string name="OEUpdaterAllReleases">GitHub 上的所有版本</string>
+    <string name="OELiteFollowSystemSaver">跟随系统省电模式</string>
+    <string name="OELiteFollowSystemSaverInfo">开启系统省电模式时，自动开启省电模式。</string>
 </resources>

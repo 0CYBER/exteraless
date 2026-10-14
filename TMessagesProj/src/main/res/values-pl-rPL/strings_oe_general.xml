@@ -149,4 +149,6 @@
     <string name="OEUpdaterChannelStableInfo">Nowe wydania na GitHubie są sprawdzane co 6 godzin.</string>
     <string name="OEUpdaterChannelBetaInfo">Oferuje też wydania wstępne z GitHuba, zanim staną się wydaniami.</string>
     <string name="OEUpdaterAllReleases">Wszystkie wydania na GitHubie</string>
+    <string name="OELiteFollowSystemSaver">Zgodnie z systemowym oszczędzaniem baterii</string>
+    <string name="OELiteFollowSystemSaverInfo">Oszczędzanie energii włącza się razem z systemowym trybem oszczędzania baterii.</string>
 </resources>

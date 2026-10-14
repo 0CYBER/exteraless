@@ -149,4 +149,6 @@
     <string name="OEUpdaterChannelStableInfo">Las nuevas versiones en GitHub se comprueban cada 6 horas.</string>
     <string name="OEUpdaterChannelBetaInfo">También ofrece las versiones preliminares de GitHub antes de que sean versiones.</string>
     <string name="OEUpdaterAllReleases">Todas las versiones en GitHub</string>
+    <string name="OELiteFollowSystemSaver">Seguir el ahorro de batería del sistema</string>
+    <string name="OELiteFollowSystemSaverInfo">El ahorro de energía se activa junto con el ahorro de batería del sistema.</string>
 </resources>

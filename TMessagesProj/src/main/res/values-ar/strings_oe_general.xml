@@ -191,4 +191,6 @@
     <string name="OEUpdaterChannelStableInfo">يتم التحقق من الإصدارات الجديدة على GitHub كل 6 ساعات.</string>
     <string name="OEUpdaterChannelBetaInfo">يقدّم أيضًا الإصدارات التمهيدية من GitHub قبل أن تصبح إصدارات.</string>
     <string name="OEUpdaterAllReleases">جميع الإصدارات على GitHub</string>
+    <string name="OELiteFollowSystemSaver">اتباع موفر البطارية في النظام</string>
+    <string name="OELiteFollowSystemSaverInfo">يُفعَّل توفير الطاقة مع تفعيل موفر البطارية في النظام.</string>
 </resources>

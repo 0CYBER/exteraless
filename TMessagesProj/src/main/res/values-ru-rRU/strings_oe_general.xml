@@ -208,4 +208,6 @@
     <string name="OEUpdaterChannelStableInfo">Раз в 6 часов проверяются новые релизы на GitHub.</string>
     <string name="OEUpdaterChannelBetaInfo">Ещё и пре-релизы с GitHub — раньше, чем они станут релизами.</string>
     <string name="OEUpdaterAllReleases">Все релизы на GitHub</string>
+    <string name="OELiteFollowSystemSaver">Как в системе</string>
+    <string name="OELiteFollowSystemSaverInfo">Энергосбережение включается вместе с системным режимом экономии заряда.</string>
 </resources>
