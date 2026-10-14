@@ -277,6 +277,68 @@ object AppearanceConfig {
     val lrclibAllowed =
         addConfig("OEPlayerLrclibAllowed", ConfigItem.configTypeBool, false)
 
+    @JvmField
+    val playerCoverStyle = addConfig("OEPlayerCoverStyle", ConfigItem.configTypeInt, 0)
+
+    @JvmField
+    val playerCoverSize = addConfig("OEPlayerCoverSize", ConfigItem.configTypeInt, 100)
+
+    @JvmField
+    val playerCoverRadius = addConfig("OEPlayerCoverRadius", ConfigItem.configTypeInt, 28)
+
+    @JvmField
+    val playerDiscSpin = addConfig("OEPlayerDiscSpin", ConfigItem.configTypeBool, true)
+
+    @JvmField
+    val playerCoverSwipe = addConfig("OEPlayerCoverSwipe", ConfigItem.configTypeBool, true)
+
+    @JvmField
+    val playerTitleAlign = addConfig("OEPlayerTitleAlign", ConfigItem.configTypeInt, 0)
+
+    @JvmField
+    val playerTitleSize = addConfig("OEPlayerTitleSize", ConfigItem.configTypeInt, 1)
+
+    @JvmField
+    val playerTitleAbove = addConfig("OEPlayerTitleAbove", ConfigItem.configTypeBool, false)
+
+    @JvmField
+    val playerOrder = addConfig("OEPlayerOrder", ConfigItem.configTypeString, "")
+
+    @JvmField
+    val playerShowActions = addConfig("OEPlayerShowActions", ConfigItem.configTypeBool, true)
+
+    @JvmField
+    val playerShowModes = addConfig("OEPlayerShowModes", ConfigItem.configTypeBool, true)
+
+    @JvmField
+    val playerShowLike = addConfig("OEPlayerShowLike", ConfigItem.configTypeBool, true)
+
+    @JvmField
+    val playerShowSource = addConfig("OEPlayerShowSource", ConfigItem.configTypeBool, true)
+
+    @JvmField
+    val playerWavy = addConfig("OEPlayerWavy", ConfigItem.configTypeBool, true)
+
+    @JvmField
+    val playerControlsSize = addConfig("OEPlayerControlsSize", ConfigItem.configTypeInt, 1)
+
+    @JvmField
+    val playerColors = addConfig("OEPlayerColors", ConfigItem.configTypeInt, 0)
+
+    @JvmField
+    val playerBackground = addConfig("OEPlayerBackground", ConfigItem.configTypeInt, 0)
+
+    @JvmStatic
+    fun playerStyleItems(): List<ConfigItem> {
+        ensureLoaded()
+        return listOf(
+            playerCoverStyle, playerCoverSize, playerCoverRadius, playerDiscSpin, playerCoverSwipe,
+            playerTitleAlign, playerTitleSize, playerTitleAbove, playerOrder, playerShowActions,
+            playerShowModes, playerShowLike, playerShowSource, playerWavy, playerControlsSize,
+            playerColors, playerBackground
+        )
+    }
+
     /** Широкая нижняя панель как в Telegram iOS. Уступает M3-панели, если включены обе. */
     @JvmField
     val iosNavigationBarStyle =

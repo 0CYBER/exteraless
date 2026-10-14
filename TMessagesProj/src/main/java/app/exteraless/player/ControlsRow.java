@@ -19,6 +19,8 @@ public class ControlsRow extends ViewGroup implements MorphButton.PressListener 
     private boolean shuffleOn;
     private boolean repeatOn;
     private float scale = 1f;
+    private float userScale = 1f;
+    private boolean modesVisible = true;
     private long lastFrame;
     private boolean ticking;
     private final Runnable tick = this::tick;
@@ -51,6 +53,17 @@ public class ControlsRow extends ViewGroup implements MorphButton.PressListener 
     @Override
     public boolean shouldDelayChildPressedState() {
         return false;
+    }
+
+    public void setStyle(float userScale, boolean modesVisible) {
+        if (this.userScale == userScale && this.modesVisible == modesVisible) {
+            return;
+        }
+        this.userScale = userScale;
+        this.modesVisible = modesVisible;
+        shuffle.setVisibility(modesVisible ? VISIBLE : GONE);
+        repeat.setVisibility(modesVisible ? VISIBLE : GONE);
+        requestLayout();
     }
 
     public void setPlaying(boolean value, boolean animated) {
@@ -148,7 +161,8 @@ public class ControlsRow extends ViewGroup implements MorphButton.PressListener 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
-        scale = Math.min(1f, (width - dp(16)) / (float) dp(312));
+        float base = modesVisible ? 312 : 232;
+        scale = Math.min(userScale, (width - dp(16)) / (float) dp(base));
         int height = Math.round(dp(88) * scale);
         measureButtons();
         setMeasuredDimension(width, height);
@@ -170,12 +184,27 @@ public class ControlsRow extends ViewGroup implements MorphButton.PressListener 
 
     private void layoutButtons(int width, int height) {
         float total = 0;
+        int count = 0;
         for (MorphButton button : buttons) {
+            if (button.getVisibility() == GONE) {
+                continue;
+            }
             total += button.getMeasuredWidth();
+            count++;
         }
-        float gap = (width - total) / (buttons.length - 1f);
-        float x = 0;
+        float gap;
+        float x;
+        if (modesVisible) {
+            gap = (width - total) / Math.max(1f, count - 1f);
+            x = 0;
+        } else {
+            gap = Math.min(dp(28) * scale, (width - total) / Math.max(1f, count - 1f));
+            x = (width - total - gap * (count - 1)) / 2f;
+        }
         for (MorphButton button : buttons) {
+            if (button.getVisibility() == GONE) {
+                continue;
+            }
             int w = button.getMeasuredWidth();
             int h = button.getMeasuredHeight();
             int left = Math.round(x);
