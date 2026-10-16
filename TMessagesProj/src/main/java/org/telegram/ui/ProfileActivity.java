@@ -10172,7 +10172,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (!fragmentOpened) {
                     fragmentOpened = true;
                     invalidateScroll = true;
-                    fragmentView.requestLayout();
+                    if (fragmentView != null) {
+                        fragmentView.requestLayout();
+                    }
                 }
             }
             getNotificationCenter().onAnimationFinish(transitionIndex);

@@ -1458,9 +1458,15 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                 ViewCompat.setOnApplyWindowInsetsListener(fragmentView, lastFragment::onInsetsInternal);
                 containerViewBack.invalidate();
             }
-            if (NekoConfig.disableVibration.Bool()) {
+            if (fragmentView != null && NekoConfig.disableVibration.Bool()) {
                 AndroidUtil.disableHapticFeedback(fragmentView);
             }
+        }
+        if (fragmentView == null) {
+            startedTracking = false;
+            layoutToIgnore = null;
+            containerViewBack.setVisibility(View.INVISIBLE);
+            return;
         }
         ViewGroup parent = (ViewGroup) fragmentView.getParent();
         if (parent != null) {
@@ -1927,11 +1933,17 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                             (containerView.getMeasuredHeight() * (1f - m3s)) / 2f - dp(8)));
                 }
 
+                final BaseFragment lastFragment = getLastFragment();
+                final BaseFragment backgroundFragment = getBackgroundFragment();
                 if (!backAnimation) {
-                    getLastFragment().onTransitionAnimationProgress(false, progress);
-                    getBackgroundFragment().onTransitionAnimationProgress(true, progress);
-                } else {
-                    getBackgroundFragment().onTransitionAnimationProgress(true, 1f - progress);
+                    if (lastFragment != null) {
+                        lastFragment.onTransitionAnimationProgress(false, progress);
+                    }
+                    if (backgroundFragment != null) {
+                        backgroundFragment.onTransitionAnimationProgress(true, progress);
+                    }
+                } else if (backgroundFragment != null) {
+                    backgroundFragment.onTransitionAnimationProgress(true, 1f - progress);
                 }
             });
             currentSpringAnimation.addEndListener((animation, canceled, value, velocity) -> {
