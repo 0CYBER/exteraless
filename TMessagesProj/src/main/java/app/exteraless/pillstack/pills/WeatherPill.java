@@ -59,6 +59,7 @@ public class WeatherPill extends BasePill implements PillStackEvents.Listener {
         textView.setTypeface(AndroidUtilities.bold());
         textView.setIncludeFontPadding(false);
         textView.adaptWidth = true;
+        shrinkAfterTextChange(textView);
         NotificationCenter.listenEmojiLoading(textView);
         layout.addView(textView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL));
 
