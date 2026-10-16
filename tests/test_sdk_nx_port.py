@@ -1432,3 +1432,15 @@ def test_cached_internal_import_still_refused_for_plugins(loader, monkeypatch):
     monkeypatch.setattr(loader, '_original_import', lambda *a, **k: sys.modules['json'], raising=False)
     with pytest.raises(ImportError):
         loader._sandboxed_import('extera_utils.plugin_loader')
+
+
+def test_plugin_can_assign_its_own_client_attribute(sdk):
+    class Poster(sdk.base.BasePlugin):
+        pass
+
+    plugin = Poster()
+    marker = object()
+    plugin.client = marker
+    assert plugin.client is marker
+    del plugin.client
+    assert plugin.client is not marker

@@ -523,6 +523,9 @@ def _serialize_hook_filters(before, after) -> str:
                       ensure_ascii=False)
 
 
+_NO_CLIENT_OVERRIDE = object()
+
+
 # BasePlugin
 
 class BasePlugin:
@@ -789,8 +792,19 @@ class BasePlugin:
         (falling back to the UI-selected account outside hooks);
         ``self.client(account)`` returns an AccountClient bound to *account*.
         """
+        override = self.__dict__.get("_exteraless_client_override", _NO_CLIENT_OVERRIDE)
+        if override is not _NO_CLIENT_OVERRIDE:
+            return override
         import client_utils
         return client_utils.AccountClient(None)
+
+    @client.setter
+    def client(self, value):
+        self.__dict__["_exteraless_client_override"] = value
+
+    @client.deleter
+    def client(self):
+        self.__dict__.pop("_exteraless_client_override", None)
 
     # ---- Xposed-style method hooking ----
 
