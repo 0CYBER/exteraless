@@ -203,6 +203,8 @@ public class PluginInstallBottomSheet extends com.exteragram.messenger.plugins.u
         }
 
         if (!permissions.isEmpty()) {
+            final List<String> stored = plugin != null ? PluginPermissions.getStored(plugin.id) : null;
+            final List<String> previouslyGranted = stored != null ? stored : new ArrayList<>();
             LinearLayout group = createCard(context);
             group.setPadding(0, dp(6), 0, dp(6));
             for (String permission : permissions) {
@@ -214,7 +216,8 @@ public class PluginInstallBottomSheet extends com.exteragram.messenger.plugins.u
                         false);
                 cell.applyColors(colors.onSurface, colors.onSurfaceVariant, colors.onSurfaceVariant,
                         ColorUtils.setAlphaComponent(colors.onSurfaceVariant, 0x1A));
-                cell.setChecked(!obfuscated && !PluginPermissions.isDangerous(permission), false);
+                cell.setChecked(previouslyGranted.contains(permission)
+                        || !obfuscated && !PluginPermissions.isDangerous(permission), false);
                 cell.setOnToggle(() -> cell.setChecked(!cell.isChecked(), true));
                 cell.setBackground(Theme.createSelectorDrawable(ColorUtils.setAlphaComponent(colors.onSurface, 0x14), 2));
                 cells.add(cell);
