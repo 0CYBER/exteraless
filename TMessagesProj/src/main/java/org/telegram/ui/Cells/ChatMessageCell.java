@@ -18914,7 +18914,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
         }
-        boolean showAyuDeletedMark = ayuDeleted && shouldShowAyuDeletedMark(currentMessageObject);
+        boolean showAyuDeletedMark = bubbleAyuDeleted() && shouldShowAyuDeletedMark(currentMessageObject);
         // bookmark start
         boolean showBookmarkInTime = false;
         int senderNameColor = 0;
@@ -19029,7 +19029,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             if (edited && TimeStringHelper.useEditedIcon() && TimeStringHelper.editedDrawable != null) { // openExtera: + NaConfig.UseEditedIcon
                 timeTextWidth = timeWidth += TimeStringHelper.editedDrawable.getIntrinsicWidth();
             }
-            if (ayuDeleted && NaConfig.INSTANCE.getUseDeletedIcon().Bool() && TimeStringHelper.deletedDrawable != null) {
+            if (showAyuDeletedMark && NaConfig.INSTANCE.getUseDeletedIcon().Bool() && TimeStringHelper.deletedDrawable != null) {
                 timeTextWidth = timeWidth += TimeStringHelper.deletedDrawable.getIntrinsicWidth();
             }
             if (translated && TimeStringHelper.translatedDrawable != null) {
@@ -20961,6 +20961,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         if (shouldTranslucentDeleted() && ayuDeleted) {
             canvas.restore();
         }
+        if (ayuDeleted && !bubbleAyuDeleted() && shouldShowAyuDeletedMark(currentMessageObject)) {
+            drawGroupItemDeletedBadge(canvas);
+        }
     }
 
     public void drawBackgroundInternal(Canvas canvas, boolean fromParent) {
@@ -21374,7 +21377,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     } else {
                         currentSelectedBackgroundAlpha = 0;
                         currentBackgroundDrawable.setAlpha((int) (255 * alphaInternal));
-                        if (NaConfig.INSTANCE.getTranslucentDeletedMessages().Bool() && ayuDeleted && currentMessageObject.isOutOwner()) {
+                        if (NaConfig.INSTANCE.getTranslucentDeletedMessages().Bool() && bubbleAyuDeleted() && currentMessageObject.isOutOwner()) {
                             currentBackgroundDrawable.setAlpha((int) (255 * 0.75f));
                         }
                         currentBackgroundDrawable.drawCached(canvas, backgroundCacheParams);
@@ -22698,7 +22701,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 currentBackgroundShadowDrawable.draw(canvas);
                 currentBackgroundShadowDrawable.setAlpha(255);
             }
-            currentBackgroundDrawable.setAlpha((int) (getAlpha() * (shouldTranslucentDeleted() && ayuDeleted ? 255 * 0.75f : 255)));
+            currentBackgroundDrawable.setAlpha((int) (getAlpha() * (shouldTranslucentDeleted() && bubbleAyuDeleted() ? 255 * 0.75f : 255)));
             currentBackgroundDrawable.setBounds(left, top, right, bottom);
             currentBackgroundDrawable.drawCached(canvas, backgroundCacheParams);
             currentBackgroundDrawable.setAlpha(255);
@@ -30457,6 +30460,50 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     protected boolean shouldTranslucentDeleted() {
         return NaConfig.INSTANCE.getTranslucentDeletedMessages().Bool();
+    }
+
+    private boolean bubbleAyuDeleted() {
+        if (currentPosition == null || currentMessagesGroup == null || currentMessagesGroup.messages.size() < 2) {
+            return ayuDeleted;
+        }
+        for (int a = 0, size = currentMessagesGroup.messages.size(); a < size; a++) {
+            if (!currentMessagesGroup.messages.get(a).isAyuDeleted()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Drawable groupItemDeletedIcon;
+    private int groupItemDeletedIconColor;
+
+    private void drawGroupItemDeletedBadge(Canvas canvas) {
+        if (photoImage.getImageWidth() < dp(40) || photoImage.getImageHeight() < dp(40)) {
+            return;
+        }
+        if (groupItemDeletedIcon == null) {
+            groupItemDeletedIcon = ContextCompat.getDrawable(getContext(), R.drawable.msg_delete_solar_12);
+            if (groupItemDeletedIcon == null) {
+                return;
+            }
+            groupItemDeletedIcon = groupItemDeletedIcon.mutate();
+        }
+        final int color = getThemedColor(Theme.key_chat_mediaTimeText);
+        if (groupItemDeletedIconColor != color) {
+            groupItemDeletedIconColor = color;
+            groupItemDeletedIcon.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
+        }
+        final int size = dp(22);
+        final float x = photoImage.getImageX() + dp(6);
+        final float y = photoImage.getImageY() + dp(6);
+        AndroidUtilities.rectTmp.set(x, y, x + size, y + size);
+        canvas.drawRoundRect(AndroidUtilities.rectTmp, size / 2f, size / 2f, getThemedPaint(Theme.key_paint_chatTimeBackground));
+        final int iw = groupItemDeletedIcon.getIntrinsicWidth();
+        final int ih = groupItemDeletedIcon.getIntrinsicHeight();
+        final int cx = (int) AndroidUtilities.rectTmp.centerX();
+        final int cy = (int) AndroidUtilities.rectTmp.centerY();
+        groupItemDeletedIcon.setBounds(cx - iw / 2, cy - ih / 2, cx - iw / 2 + iw, cy - ih / 2 + ih);
+        groupItemDeletedIcon.draw(canvas);
     }
 
     // bookmark start
