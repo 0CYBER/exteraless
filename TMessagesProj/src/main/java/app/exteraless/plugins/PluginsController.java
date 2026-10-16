@@ -58,6 +58,10 @@ public class PluginsController extends com.exteragram.messenger.plugins.PluginsC
 
     private static volatile PluginsController instance;
 
+    public static PluginsController peekInstance() {
+        return instance;
+    }
+
     public static PluginsController getInstance() {
         if (instance == null) {
             synchronized (PluginsController.class) {
