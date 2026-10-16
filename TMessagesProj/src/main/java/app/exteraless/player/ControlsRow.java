@@ -33,6 +33,8 @@ public class ControlsRow extends ViewGroup implements MorphButton.PressListener 
         play.setAltIcon(PlayerIcon.fill(PlayerIcon.PAUSE, 36));
         next = new MorphButton(context, PlayerIcon.fill(PlayerIcon.NEXT, 28));
         repeat = new MorphButton(context, PlayerIcon.stroke(PlayerIcon.REPEAT, 22));
+        shuffle.setAltIcon(PlayerIcon.stroke(PlayerIcon.REVERSE, 22));
+        repeat.setAltIcon(PlayerIcon.stroke(PlayerIcon.ONCE, 22));
         buttons = new MorphButton[]{shuffle, prev, play, next, repeat};
         float[] widths = {48, 64, 88, 64, 48};
         float[] heights = {48, 64, 88, 64, 48};
@@ -72,11 +74,13 @@ public class ControlsRow extends ViewGroup implements MorphButton.PressListener 
         updateTargets(animated);
     }
 
-    public void setModes(boolean shuffleActive, boolean repeatActive, boolean repeatOne, boolean animated) {
-        shuffleOn = shuffleActive;
-        repeatOn = repeatActive;
-        shuffle.setActive(shuffleActive, animated);
-        repeat.setActive(repeatActive, animated);
+    public void setModes(boolean shuffleActive, boolean reversed, boolean repeatActive, boolean repeatOne, boolean playOnce, boolean animated) {
+        shuffleOn = shuffleActive || reversed;
+        repeatOn = repeatActive || playOnce;
+        shuffle.setAlt(reversed, animated);
+        shuffle.setActive(shuffleOn, animated);
+        repeat.setAlt(playOnce, animated);
+        repeat.setActive(repeatOn, animated);
         repeat.setBadge(repeatOne ? "1" : null, animated);
         updateTargets(animated);
     }

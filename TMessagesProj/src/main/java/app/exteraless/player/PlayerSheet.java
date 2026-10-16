@@ -502,13 +502,21 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
         controls = new ControlsRow(context);
         controls.shuffle.setOnClickListener(v -> {
-            MediaController.getInstance().setPlaybackOrderType(SharedConfig.shuffleMusic ? 0 : 2);
+            MediaController.getInstance().setPlaybackOrderType(SharedConfig.shuffleMusic || SharedConfig.playOrderReversed ? 0 : 2);
             updateModes(true);
         });
         controls.repeat.setOnClickListener(v -> {
             int mode = SharedConfig.repeatMode;
             SharedConfig.setRepeatMode(mode == 0 ? 1 : mode == 1 ? 2 : 0);
             updateModes(true);
+        });
+        controls.shuffle.setOnLongClickListener(v -> {
+            showPlaybackOptions(v);
+            return true;
+        });
+        controls.repeat.setOnLongClickListener(v -> {
+            showPlaybackOptions(v);
+            return true;
         });
         controls.prev.setOnClickListener(v -> MediaController.getInstance().playPreviousMessage());
         controls.next.setOnClickListener(v -> MediaController.getInstance().playNextMessage());
@@ -1297,8 +1305,43 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     private void updateModes(boolean animated) {
         int mode = SharedConfig.repeatMode;
         boolean repeatActive = mode == 1 || mode == 2;
-        controls.setModes(SharedConfig.shuffleMusic, repeatActive, mode == 2, animated);
-        controls.repeat.setContentDescription(getString(mode == 2 ? R.string.AccDescrRepeatOne : mode == 1 ? R.string.AccDescrRepeatList : R.string.AccDescrRepeatOff));
+        boolean reversed = SharedConfig.playOrderReversed;
+        controls.setModes(SharedConfig.shuffleMusic, reversed, repeatActive, mode == 2, mode == AudioPlayerAlert.PLAY_ONCE, animated);
+        controls.shuffle.setContentDescription(getString(reversed ? R.string.ReverseOrder : R.string.ShuffleList));
+        controls.repeat.setContentDescription(getString(mode == AudioPlayerAlert.PLAY_ONCE ? R.string.PlayOnce : mode == 2 ? R.string.AccDescrRepeatOne : mode == 1 ? R.string.AccDescrRepeatList : R.string.AccDescrRepeatOff));
+    }
+
+    private void showPlaybackOptions(View anchor) {
+        ItemOptions o = ItemOptions.makeOptions(container, colors.provider(resourcesProvider), anchor, true);
+        addPlaybackOptions(o, null);
+        o.show();
+    }
+
+    private void addPlaybackOptions(ItemOptions o, Runnable close) {
+        int mode = SharedConfig.repeatMode;
+        o.addChecked(mode == AudioPlayerAlert.PLAY_ONCE, R.drawable.photo_timer, getString(R.string.PlayOnce), () -> toggleRepeatMode(AudioPlayerAlert.PLAY_ONCE, close));
+        o.addChecked(mode == 2, R.drawable.player_new_repeatone, getString(R.string.RepeatSong), () -> toggleRepeatMode(2, close));
+        o.addChecked(mode == 1, R.drawable.player_new_repeatall, getString(R.string.RepeatList), () -> toggleRepeatMode(1, close));
+        o.addGap();
+        o.addChecked(SharedConfig.shuffleMusic, R.drawable.player_new_shuffle, getString(R.string.ShuffleList), () -> togglePlaybackOrder(2, close));
+        o.addChecked(SharedConfig.playOrderReversed, R.drawable.player_new_order, getString(R.string.ReverseOrder), () -> togglePlaybackOrder(1, close));
+    }
+
+    private void toggleRepeatMode(int mode, Runnable close) {
+        SharedConfig.setRepeatMode(SharedConfig.repeatMode == mode ? 0 : mode);
+        updateModes(true);
+        if (close != null) {
+            close.run();
+        }
+    }
+
+    private void togglePlaybackOrder(int type, Runnable close) {
+        boolean on = type == 1 ? SharedConfig.playOrderReversed : SharedConfig.shuffleMusic;
+        MediaController.getInstance().setPlaybackOrderType(on ? 0 : type);
+        updateModes(true);
+        if (close != null) {
+            close.run();
+        }
     }
 
     private void updateSpeed() {
@@ -1647,6 +1690,14 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             o.dismiss();
             PlayerActions.share(activity, mo);
         });
+        ItemOptions order = o.makeSwipeback();
+        order.add(R.drawable.ic_ab_back, getString(R.string.Back), o::closeSwipeback);
+        order.addGap();
+        addPlaybackOptions(order, o::dismiss);
+        o.add(R.drawable.player_new_order, getString(R.string.OEPlayerPlaybackOrder), () -> o.openSwipeback(order));
+        if (o.getLast() != null) {
+            o.getLast().setRightIcon(R.drawable.msg_arrowright);
+        }
         o.addIf(mo.getId() > 0, R.drawable.msg_message, getString(R.string.ShowInChat), () -> {
             o.dismiss();
             dismissImmediately();
