@@ -219,6 +219,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         occupyNavigationBar = true;
         drawNavigationBar = false;
+        fullWidth = true;
         setApplyTopPadding(false);
         setApplyBottomPadding(false);
 
