@@ -193,6 +193,8 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     private String currentKey;
     private boolean lyricsMode;
     private float lyricsFraction;
+    private boolean landscape;
+    private int columnLeft;
     private ValueAnimator lyricsAnimator;
     private String lyricsKey;
     private Lyrics fileLyrics;
@@ -2191,6 +2193,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     private class CoverScrim extends View {
 
         private LinearGradient gradient;
+        private LinearGradient sideGradient;
         private int gradientKey;
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint extensionPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
@@ -2257,7 +2260,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         }
 
         private boolean prepareExtension(int w, int h) {
-            if (coverStyle != PlayerStyle.COVER_WIDE || !PlayerStyle.coverExtend()) {
+            if (coverStyle != PlayerStyle.COVER_WIDE || !PlayerStyle.coverExtend() || landscape) {
                 return false;
             }
             int below = extensionBelow(h);
@@ -2360,10 +2363,22 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         private void drawScrim(Canvas canvas, int w, int h, float alpha, boolean extended) {
             int surface = colors.surface;
             boolean full = coverStyle == PlayerStyle.COVER_FULL;
-            int key = ((surface * 31 + h) * 31 + (full ? 1 : 0)) * 31 + (extended ? 1 : 0);
+            int key = (((surface * 31 + h) * 31 + (full ? 1 : 0)) * 31 + (extended ? 1 : 0)) * 31 + (landscape ? columnLeft * 7 + w : 0);
             if (gradient == null || gradientKey != key) {
                 gradientKey = key;
-                if (full) {
+                sideGradient = null;
+                if (landscape) {
+                    gradient = new LinearGradient(0, 0, 0, h, new int[]{
+                            ColorUtils.setAlphaComponent(surface, 0x8c),
+                            ColorUtils.setAlphaComponent(surface, 0)
+                    }, new float[]{0f, 0.3f}, Shader.TileMode.CLAMP);
+                    float start = full ? Math.max(0f, (columnLeft - dp(180)) / (float) w) : 0.55f;
+                    float end = full ? Math.min(1f, (columnLeft + dp(16)) / (float) w) : 1f;
+                    sideGradient = new LinearGradient(0, 0, w, 0, new int[]{
+                            ColorUtils.setAlphaComponent(surface, 0),
+                            full ? ColorUtils.setAlphaComponent(surface, 0xe6) : surface
+                    }, new float[]{start, end}, Shader.TileMode.CLAMP);
+                } else if (full) {
                     gradient = new LinearGradient(0, 0, 0, h, new int[]{
                             ColorUtils.setAlphaComponent(surface, 0x99),
                             ColorUtils.setAlphaComponent(surface, 0),
@@ -2388,6 +2403,11 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             paint.setShader(gradient);
             paint.setAlpha((int) (255 * alpha));
             canvas.drawRect(0, 0, w, h, paint);
+            if (sideGradient != null) {
+                paint.setShader(sideGradient);
+                paint.setAlpha((int) (255 * alpha));
+                canvas.drawRect(0, 0, w, h, paint);
+            }
             if (full && lyricsFraction > 0f) {
                 paint.setShader(null);
                 paint.setColor(ColorUtils.setAlphaComponent(surface, (int) (0xb8 * lyricsFraction * alpha)));
@@ -2403,6 +2423,10 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         private int titleY;
         private int stageTop;
         private int stageHeight;
+        private int stageLeft;
+        private int stageWidth;
+        private int columnWidth;
+        private float gapScale = 1f;
         private int lastWidth;
         private int lastHeight;
 
@@ -2486,11 +2510,11 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         private int gapBefore(int block) {
             switch (block) {
                 case PlayerStyle.BLOCK_PROGRESS:
-                    return dp(6);
+                    return Math.round(dp(6) * gapScale);
                 case PlayerStyle.BLOCK_CONTROLS:
-                    return dp(12);
+                    return Math.round(dp(12) * gapScale);
                 default:
-                    return dp(16);
+                    return Math.round(dp(16) * gapScale);
             }
         }
 
@@ -2531,6 +2555,50 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             }
         }
 
+        private void computeColumns(int width, int height) {
+            int side = dp(24);
+            int contentW = Math.max(0, width - side * 2);
+            landscape = width > height && height < dp(600);
+            gapScale = landscape ? 0.6f : 1f;
+            if (!landscape) {
+                columnLeft = side;
+                columnWidth = contentW;
+                stageLeft = side;
+                stageWidth = contentW;
+                return;
+            }
+            int split = coverStyle == PlayerStyle.COVER_WIDE ? Math.round(width * 0.46f) : side + Math.round(contentW * 0.46f);
+            columnLeft = split + dp(28);
+            columnWidth = Math.max(0, width - side - columnLeft);
+            stageLeft = side;
+            stageWidth = Math.max(0, split - side);
+        }
+
+        private void computeLandscape(int width, int height, int headerBottom, int bottom) {
+            int titleH = titleRow.getMeasuredHeight();
+            int areaTop = headerBottom;
+            int areaBottom = height - bottom - dp(16);
+            int areaH = Math.max(0, areaBottom - areaTop);
+            if (titleH + lowerHeight() > areaH) {
+                gapScale = 0.3f;
+            }
+            int column = titleH + lowerHeight();
+            titleY = areaTop + Math.max(0, (areaH - column) / 2);
+            placeLower(titleY + titleH);
+            stageTop = areaTop;
+            stageHeight = areaH;
+            if (coverStyle == PlayerStyle.COVER_FULL) {
+                coverRect.set(0, 0, width, height);
+            } else if (coverStyle == PlayerStyle.COVER_WIDE) {
+                coverRect.set(0, 0, columnLeft - dp(28), height);
+            } else {
+                int size = Math.max(dp(96), Math.round(Math.min(areaH, stageWidth) * PlayerStyle.coverSize()));
+                int left = stageLeft + (stageWidth - size) / 2;
+                int coverTop = areaTop + (areaH - size) / 2;
+                coverRect.set(left, coverTop, left + size, coverTop + size);
+            }
+        }
+
         private void compute(int width, int height) {
             int top = getStatusBarHeight();
             int bottom = getBottomInset();
@@ -2538,6 +2606,10 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             int contentW = Math.max(0, width - side * 2);
             int titleH = titleRow.getMeasuredHeight();
             int headerBottom = top + dp(56);
+            if (landscape) {
+                computeLandscape(width, height, headerBottom, bottom);
+                return;
+            }
             int bottomY = height - bottom - dp(28);
             int lower = lowerHeight();
             int style = coverStyle;
@@ -2593,7 +2665,8 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             int height = MeasureSpec.getSize(heightMeasureSpec);
             int side = dp(24);
             int contentW = Math.max(0, width - side * 2);
-            int exactW = MeasureSpec.makeMeasureSpec(contentW, MeasureSpec.EXACTLY);
+            computeColumns(width, height);
+            int exactW = MeasureSpec.makeMeasureSpec(columnWidth, MeasureSpec.EXACTLY);
             header.measure(MeasureSpec.makeMeasureSpec(contentW + dp(24), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(56), MeasureSpec.EXACTLY));
             seekBar.measure(exactW, MeasureSpec.makeMeasureSpec(dp(40), MeasureSpec.EXACTLY));
             timeRow.measure(exactW, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
@@ -2604,7 +2677,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             compute(width, height);
             cover.measure(MeasureSpec.makeMeasureSpec(coverRect.width(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(coverRect.height(), MeasureSpec.EXACTLY));
             coverScrim.measure(MeasureSpec.makeMeasureSpec(coverRect.width(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(coverRect.height(), MeasureSpec.EXACTLY));
-            lyricsPanel.measure(exactW, MeasureSpec.makeMeasureSpec(stageHeight, MeasureSpec.EXACTLY));
+            lyricsPanel.measure(MeasureSpec.makeMeasureSpec(stageWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(stageHeight, MeasureSpec.EXACTLY));
             if (coverStyle == PlayerStyle.COVER_DISC) {
                 int r = coverRect.width() / 2;
                 if (cover.getRadius() != r) {
@@ -2623,26 +2696,26 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
         @Override
         protected void onLayout(boolean changed, int l, int t, int r, int b) {
-            int width = r - l;
             int top = getStatusBarHeight();
             int side = dp(24);
-            int contentW = Math.max(0, width - side * 2);
+            int x = columnLeft;
+            int w = columnWidth;
             header.layout(side - dp(12), top, side - dp(12) + header.getMeasuredWidth(), top + dp(56));
             cover.layout(coverRect.left, coverRect.top, coverRect.right, coverRect.bottom);
             coverScrim.layout(coverRect.left, coverRect.top, coverRect.right, coverRect.bottom);
-            titleRow.layout(side, titleY, side + contentW, titleY + titleRow.getMeasuredHeight());
-            lyricsPanel.layout(side, stageTop, side + contentW, stageTop + stageHeight);
+            titleRow.layout(x, titleY, x + w, titleY + titleRow.getMeasuredHeight());
+            lyricsPanel.layout(stageLeft, stageTop, stageLeft + stageWidth, stageTop + stageHeight);
             int seekTop = blockY[PlayerStyle.BLOCK_PROGRESS];
-            seekBar.layout(side, seekTop, side + contentW, seekTop + dp(40));
+            seekBar.layout(x, seekTop, x + w, seekTop + dp(40));
             int bubbleTop = seekTop - dp(36);
-            bubble.layout(side, bubbleTop, side + bubble.getMeasuredWidth(), bubbleTop + bubble.getMeasuredHeight());
+            bubble.layout(x, bubbleTop, x + bubble.getMeasuredWidth(), bubbleTop + bubble.getMeasuredHeight());
             int timeTop = seekTop + dp(40);
-            timeRow.layout(side, timeTop, side + contentW, timeTop + timeRow.getMeasuredHeight());
+            timeRow.layout(x, timeTop, x + w, timeTop + timeRow.getMeasuredHeight());
             int controlsTop = blockY[PlayerStyle.BLOCK_CONTROLS];
-            controls.layout(side, controlsTop, side + contentW, controlsTop + controls.getMeasuredHeight());
+            controls.layout(x, controlsTop, x + w, controlsTop + controls.getMeasuredHeight());
             if (group.getVisibility() != GONE) {
                 int groupTop = blockY[PlayerStyle.BLOCK_ACTIONS];
-                group.layout(side, groupTop, side + contentW, groupTop + dp(52));
+                group.layout(x, groupTop, x + w, groupTop + dp(52));
             }
             if (seeking) {
                 layoutBubble();
