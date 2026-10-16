@@ -615,6 +615,23 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     @Override
     protected void onInsetsChanged() {
         insetsReady = true;
+        padEditorPanel();
+    }
+
+    private void padEditorPanel() {
+        if (editorPanel != null) {
+            editorPanel.setPadding(super.getLeftInset(), 0, super.getRightInset(), 0);
+        }
+    }
+
+    @Override
+    public int getLeftInset() {
+        return 0;
+    }
+
+    @Override
+    public int getRightInset() {
+        return 0;
     }
 
     public void setTransitionSource(PlayerMiniView source) {
@@ -2006,6 +2023,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         editorPanel.addView(scroll, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP, 0, 68, 0, 0));
 
         root.addView(editorPanel, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 320, Gravity.BOTTOM));
+        padEditorPanel();
         editorPanel.setTranslationY(dp(2000));
         bindEditorColors(colors);
     }
@@ -2430,6 +2448,8 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         private float gapScale = 1f;
         private int lastWidth;
         private int lastHeight;
+        private int padLeft = dp(24);
+        private int padRight = dp(24);
 
         PlayerLayout(Context context) {
             super(context);
@@ -2557,22 +2577,21 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         }
 
         private void computeColumns(int width, int height) {
-            int side = dp(24);
-            int contentW = Math.max(0, width - side * 2);
+            int contentW = Math.max(0, width - padLeft - padRight);
             landscape = width > height && height < dp(600);
             gapScale = landscape ? 0.6f : 1f;
             if (!landscape) {
-                columnLeft = side;
+                columnLeft = padLeft;
                 columnWidth = contentW;
-                stageLeft = side;
+                stageLeft = padLeft;
                 stageWidth = contentW;
                 return;
             }
-            int split = coverStyle == PlayerStyle.COVER_WIDE ? Math.round(width * 0.46f) : side + Math.round(contentW * 0.46f);
+            int split = coverStyle == PlayerStyle.COVER_WIDE ? Math.round(width * 0.46f) : padLeft + Math.round(contentW * 0.46f);
             columnLeft = split + dp(28);
-            columnWidth = Math.max(0, width - side - columnLeft);
-            stageLeft = side;
-            stageWidth = Math.max(0, split - side);
+            columnWidth = Math.max(0, width - padRight - columnLeft);
+            stageLeft = padLeft;
+            stageWidth = Math.max(0, split - padLeft);
         }
 
         private void computeLandscape(int width, int height, int headerBottom, int bottom) {
@@ -2603,8 +2622,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         private void compute(int width, int height) {
             int top = getStatusBarHeight();
             int bottom = getBottomInset();
-            int side = dp(24);
-            int contentW = Math.max(0, width - side * 2);
+            int contentW = Math.max(0, width - padLeft - padRight);
             int titleH = titleRow.getMeasuredHeight();
             int headerBottom = top + dp(56);
             if (landscape) {
@@ -2655,7 +2673,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                 coverTop = stageTop + dp(16);
                 titleY = coverTop + size + dp(26);
             }
-            int coverLeft = (width - size) / 2;
+            int coverLeft = padLeft + (contentW - size) / 2;
             coverRect.set(coverLeft, coverTop, coverLeft + size, coverTop + size);
             placeLower(Math.max(stageTop + stageHeight, bottomY - lower));
         }
@@ -2664,8 +2682,9 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
             int width = MeasureSpec.getSize(widthMeasureSpec);
             int height = MeasureSpec.getSize(heightMeasureSpec);
-            int side = dp(24);
-            int contentW = Math.max(0, width - side * 2);
+            padLeft = dp(24) + PlayerSheet.super.getLeftInset();
+            padRight = dp(24) + PlayerSheet.super.getRightInset();
+            int contentW = Math.max(0, width - padLeft - padRight);
             computeColumns(width, height);
             int exactW = MeasureSpec.makeMeasureSpec(columnWidth, MeasureSpec.EXACTLY);
             header.measure(MeasureSpec.makeMeasureSpec(contentW + dp(24), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(56), MeasureSpec.EXACTLY));
@@ -2698,10 +2717,9 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         @Override
         protected void onLayout(boolean changed, int l, int t, int r, int b) {
             int top = getStatusBarHeight();
-            int side = dp(24);
             int x = columnLeft;
             int w = columnWidth;
-            header.layout(side - dp(12), top, side - dp(12) + header.getMeasuredWidth(), top + dp(56));
+            header.layout(padLeft - dp(12), top, padLeft - dp(12) + header.getMeasuredWidth(), top + dp(56));
             cover.layout(coverRect.left, coverRect.top, coverRect.right, coverRect.bottom);
             coverScrim.layout(coverRect.left, coverRect.top, coverRect.right, coverRect.bottom);
             titleRow.layout(x, titleY, x + w, titleY + titleRow.getMeasuredHeight());
