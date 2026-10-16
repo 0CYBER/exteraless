@@ -23,6 +23,7 @@
     <string name="PluginsInstallReadError">تعذّرت قراءة الملف المحدد.</string>
     <string name="PluginsCrashedTitle">تعطّلت الإضافة</string>
     <string name="PluginsCrashedMessage">تم تعطيل الإضافة %1$s بعد حدوث عطل.</string>
+    <string name="PluginsAutoSafeMode">تعطّل التطبيق عدة مرات متتالية بعد التشغيل مباشرةً، لذلك تم إيقاف الإضافات (الوضع الآمن). عندما تكون مستعدًا، أوقف الوضع الآمن من قسم الإضافات.</string>
     <string name="PluginsMenuOpenSettings">فتح الإعدادات</string>
     <string name="PluginsMenuReload">إعادة التحميل</string>
     <string name="PluginsMenuCopyId">نسخ المعرّف</string>

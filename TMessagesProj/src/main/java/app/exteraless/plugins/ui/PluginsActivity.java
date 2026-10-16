@@ -743,6 +743,13 @@ public class PluginsActivity extends BaseFragment {
         super.onResume();
         // Однократное уведомление о плагине, отключённом watchdog'ом после падений.
         PluginsWatchdog watchdog = PluginsController.getInstance().getWatchdog();
+        if (watchdog != null && getParentActivity() != null && watchdog.consumeAutoSafeMode()) {
+            showDialog(new AlertDialog.Builder(getParentActivity())
+                    .setTitle(getString(R.string.PluginsSafeMode))
+                    .setMessage(getString(R.string.PluginsAutoSafeMode))
+                    .setPositiveButton(getString(R.string.OK), null)
+                    .create());
+        }
         String crashed = watchdog != null ? watchdog.consumeCrashedPlugin() : null;
         if (crashed != null && getParentActivity() != null) {
             showDialog(new AlertDialog.Builder(getParentActivity())

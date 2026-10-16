@@ -24,6 +24,7 @@
     <string name="PluginsInstallReadError">Couldn\'t read the selected file.</string>
     <string name="PluginsCrashedTitle">Plugin crashed</string>
     <string name="PluginsCrashedMessage">Plugin %1$s was disabled after a crash.</string>
+    <string name="PluginsAutoSafeMode">The app crashed several times in a row right after launch, so plugins were turned off (safe mode). When you are ready, turn safe mode off in Plugins.</string>
     <string name="PluginsMenuOpenSettings">Open settings</string>
     <string name="PluginsMenuReload">Reload</string>
     <string name="PluginsMenuCopyId">Copy ID</string>

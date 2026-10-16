@@ -21,6 +21,7 @@
     <string name="PluginsInstallReadError">No se pudo leer el archivo seleccionado.</string>
     <string name="PluginsCrashedTitle">El plugin ha fallado</string>
     <string name="PluginsCrashedMessage">El plugin %1$s se desactivó tras un fallo.</string>
+    <string name="PluginsAutoSafeMode">La app se cerró varias veces seguidas justo después de abrirse, así que los plugins se desactivaron (modo seguro). Cuando quieras, desactiva el modo seguro en Plugins.</string>
     <string name="PluginsMenuOpenSettings">Abrir ajustes</string>
     <string name="PluginsMenuReload">Recargar</string>
     <string name="PluginsMenuCopyId">Copiar ID</string>

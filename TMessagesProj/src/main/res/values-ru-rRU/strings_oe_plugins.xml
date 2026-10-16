@@ -24,6 +24,7 @@
     <string name="PluginsInstallReadError">Не удалось прочитать выбранный файл.</string>
     <string name="PluginsCrashedTitle">Плагин упал</string>
     <string name="PluginsCrashedMessage">Плагин %1$s был отключён после сбоя.</string>
+    <string name="PluginsAutoSafeMode">Приложение несколько раз подряд падало сразу после запуска, поэтому плагины выключены (безопасный режим). Когда будете готовы, выключите безопасный режим в разделе «Плагины».</string>
     <string name="PluginsMenuOpenSettings">Открыть настройки</string>
     <string name="PluginsMenuReload">Перезагрузить</string>
     <string name="PluginsMenuCopyId">Копировать ID</string>

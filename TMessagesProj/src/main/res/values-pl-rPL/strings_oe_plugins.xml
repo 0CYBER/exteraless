@@ -21,6 +21,7 @@
     <string name="PluginsInstallReadError">Nie udało się odczytać wybranego pliku.</string>
     <string name="PluginsCrashedTitle">Wtyczka uległa awarii</string>
     <string name="PluginsCrashedMessage">Wtyczka %1$s została wyłączona po awarii.</string>
+    <string name="PluginsAutoSafeMode">Aplikacja kilka razy z rzędu zawiesiła się zaraz po uruchomieniu, więc wtyczki zostały wyłączone (tryb bezpieczny). Gdy będziesz gotowy, wyłącz tryb bezpieczny w sekcji Wtyczki.</string>
     <string name="PluginsMenuOpenSettings">Otwórz ustawienia</string>
     <string name="PluginsMenuReload">Załaduj ponownie</string>
     <string name="PluginsMenuCopyId">Kopiuj ID</string>

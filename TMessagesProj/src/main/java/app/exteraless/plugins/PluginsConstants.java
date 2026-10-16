@@ -54,6 +54,9 @@ public final class PluginsConstants {
 
     public static final String KEY_WATCHDOG_MUTED_PREFIX = "watchdog_muted_";
 
+    public static final String KEY_WATCHDOG_EARLY_CRASHES = "watchdog_early_crashes";
+    public static final String KEY_SAFE_MODE_AUTO = "pluginsSafeModeAuto";
+
     /** Per-plugin настройки: отдельный prefs-файл plugin_settings_<id>, значения — JSON. */
     public static final String SETTINGS_PREFS_PREFIX = "plugin_settings_";
 

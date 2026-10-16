@@ -144,6 +144,14 @@ public class PluginsController extends com.exteragram.messenger.plugins.PluginsC
         if (crashed != null) {
             FileLog.e("PluginsController: disabled crashed plugin " + crashed);
         }
+        if (watchdog.consumeEarlyCrashLoop() && !isSafeMode()) {
+            preferences.edit()
+                    .putBoolean(PluginsConstants.KEY_SAFE_MODE, true)
+                    .putBoolean(PluginsConstants.KEY_SAFE_MODE_AUTO, true)
+                    .apply();
+            FileLog.e("PluginsController: repeated crashes right after launch, starting in safe mode");
+        }
+        watchdog.scheduleEarlyCrashReset();
         // Планировщик детекта зависаний живёт столько же, сколько движок.
         watchdog.start();
         PythonPluginsEngine.getInstance().ensureStarted(appContext, ok -> {
