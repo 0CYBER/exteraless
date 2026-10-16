@@ -7083,16 +7083,14 @@ public class MessagesController extends BaseController implements NotificationCe
         }
 
         // chat name override start
-        if (ChatObject.isChannel(chat)) {
-            String overrideName = chatOverrideNameCache.computeIfAbsent(chat.id, k -> {
-                String fetchedName = LocalNameHelper.getChatNameOverride(k);
-                return (fetchedName != null) ? fetchedName : "";
-            });
-            if (!overrideName.isEmpty()) {
-                chat.title = overrideName;
-                if (oldChat != null) {
-                    oldChat.title = overrideName;
-                }
+        String overrideName = chatOverrideNameCache.computeIfAbsent(chat.id, k -> {
+            String fetchedName = LocalNameHelper.getChatNameOverride(k);
+            return (fetchedName != null) ? fetchedName : "";
+        });
+        if (!overrideName.isEmpty()) {
+            chat.title = overrideName;
+            if (oldChat != null) {
+                oldChat.title = overrideName;
             }
         }
         // chat name override end
