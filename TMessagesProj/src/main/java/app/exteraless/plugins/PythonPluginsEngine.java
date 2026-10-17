@@ -548,7 +548,7 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
     }
 
     private PyObject callHook(String pluginId, String method, Object... args) {
-        if (!started) {
+        if (!started || org.telegram.ui.Wallet.WalletPluginFreeze.isFrozen()) {
             return null;
         }
         PluginsWatchdog watchdog = PluginsController.getInstance().getWatchdog();

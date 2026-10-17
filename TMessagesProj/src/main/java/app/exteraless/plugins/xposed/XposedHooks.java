@@ -494,6 +494,9 @@ public final class XposedHooks {
      */
     static PyResult callPython(String pluginId, PyObject callable,
                                XC_MethodHook.MethodHookParam param, HookStats stats) {
+        if (org.telegram.ui.Wallet.WalletPluginFreeze.isFrozen()) {
+            return PyResult.ERROR;
+        }
         app.exteraless.plugins.PythonThreadState.onCall();
         PluginsWatchdog watchdog = watchdog();
         final boolean profiling = HookStats.enabled && stats != null;
