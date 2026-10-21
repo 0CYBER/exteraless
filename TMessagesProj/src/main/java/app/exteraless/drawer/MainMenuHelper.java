@@ -3,6 +3,7 @@ package app.exteraless.drawer;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Process;
 import android.text.TextUtils;
 import android.view.View;
 
@@ -333,9 +334,23 @@ public final class MainMenuHelper {
             case EXTERALESS_SETTINGS:
                 return new MenuItemInfo(R.drawable.exteraless_icon_tile, LocaleController.getString(R.string.OpenExteraPreferences),
                         () -> fragment.presentFragment(new OpenExteraSettingsActivity()), null);
+            case KILL_APP:
+                return new MenuItemInfo(R.drawable.msg_leave, LocaleController.getString(R.string.OEKillApp),
+                        () -> killApplication(fragment), null);
             default:
                 return null;
         }
+    }
+
+    private static void killApplication(BaseFragment fragment) {
+        final Activity activity = fragment.getParentActivity();
+        if (activity == null) {
+            return;
+        }
+        AndroidUtilities.runOnUIThread(() -> {
+            activity.finishAndRemoveTask();
+            Process.killProcess(Process.myPid());
+        }, 200);
     }
 
     public static boolean isWalletAvailable(int currentAccount) {
@@ -467,6 +482,7 @@ public final class MainMenuHelper {
                     ? new MenuItemInfo(R.drawable.ic_gram, LocaleController.getString(R.string.WalletTitle), null, null)
                     : null;
             case EXTERALESS_SETTINGS -> new MenuItemInfo(R.drawable.exteraless_icon_tile, LocaleController.getString(R.string.OpenExteraPreferences), null, null);
+            case KILL_APP -> new MenuItemInfo(R.drawable.msg_leave, LocaleController.getString(R.string.OEKillApp), null, null);
             default -> null;
         };
     }
