@@ -287,6 +287,17 @@ public class UItem extends AdapterWithDiffUtils.Item implements Cloneable {
         return i;
     }
 
+    public static UItem asButtonWithSubtext(int id, int iconResId, CharSequence text, CharSequence subtext, int pad, int height) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_TEXT, false);
+        i.id = id;
+        i.iconResId = iconResId;
+        i.text = text;
+        i.subtext = subtext;
+        i.pad = pad;
+        i.intValue = height;
+        return i;
+    }
+
     public static UItem asStickerButton(int id, CharSequence text, TLRPC.Document sticker) {
         UItem i = new UItem(UniversalAdapter.VIEW_TYPE_TEXT, false);
         i.id = id;
