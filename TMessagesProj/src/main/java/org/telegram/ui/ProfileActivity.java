@@ -13096,9 +13096,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void createSaveExclusionItem(long chatId) {
-        if (!NaConfig.INSTANCE.getEnableSaveDeletedMessages().Bool()) return;
-        var autoTranslatePopupWrapper = new SaveExclusionPopupWrapper(ProfileActivity.this, otherItem.getPopupLayout().getSwipeBack(), chatId, getResourceProvider());
-        otherItem.addSwipeBackItem(R.drawable.msg_delete_24_solar, null, getString(R.string.SaveDeletedExclusionMenu), autoTranslatePopupWrapper.windowLayout);
+        if (NaConfig.INSTANCE.getEnableSaveDeletedMessages().Bool()) {
+            var deletedPopupWrapper = new SaveExclusionPopupWrapper(ProfileActivity.this, otherItem.getPopupLayout().getSwipeBack(), chatId, false, getResourceProvider());
+            otherItem.addSwipeBackItem(R.drawable.msg_delete_24_solar, null, getString(R.string.SaveDeletedExclusionMenu), deletedPopupWrapper.windowLayout);
+        }
+        if (NaConfig.INSTANCE.getEnableSaveEditsHistory().Bool()) {
+            var editsPopupWrapper = new SaveExclusionPopupWrapper(ProfileActivity.this, otherItem.getPopupLayout().getSwipeBack(), chatId, true, getResourceProvider());
+            otherItem.addSwipeBackItem(R.drawable.msg_edit_24_solar, null, getString(R.string.SaveEditedExclusionMenu), editsPopupWrapper.windowLayout);
+        }
     }
 
     private void createMessageFilterItem() {
