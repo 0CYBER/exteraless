@@ -113,7 +113,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import tw.nekomimi.nekogram.NekoConfig;
+import tw.nekomimi.nekogram.filters.AyuFilter;
 import tw.nekomimi.nekogram.helpers.EntitiesHelper;
+import tw.nekomimi.nekogram.helpers.MessageHelper;
 import xyz.nextalone.nagram.NaConfig;
 
 import app.exteraless.chats.LinkedCustomEmoji;
@@ -3819,6 +3821,10 @@ public class MediaDataController extends BaseController {
     private boolean loadingMoreSearchMessages;
     private boolean loadingSearchLocal;
     private boolean loadedPredirectedSearchLocal;
+    private final int[] searchHiddenCount = new int[]{0, 0};
+    private final int[] searchRawOffsetId = new int[]{0, 0};
+    private int searchNextOffsetId;
+    private int searchSkippedPages;
 
     public void removeMessageFromResults(int id) {
         for (int i = 0; i < searchResultMessages.size(); ++i) {
@@ -3984,6 +3990,8 @@ public class MediaDataController extends BaseController {
 
     public void searchMessagesInChat(String query, long dialogId, long mergeDialogId, int guid, int direction, long replyMessageId, boolean internal, TLRPC.User user, TLRPC.Chat chat, boolean jumpToMessage, ReactionsLayoutInBubble.VisibleReaction reaction, TLRPC.MessagesFilter filter) {
         int max_id = 0;
+        int nextOffsetId = searchNextOffsetId;
+        searchNextOffsetId = 0;
         long queryWithDialog = dialogId;
         boolean firstQuery = !internal;
         if (reqId != 0) {
@@ -4017,10 +4025,12 @@ public class MediaDataController extends BaseController {
                     query = lastSearchQuery;
                     MessageObject messageObject = searchResultMessages.get(searchResultMessages.size() - 1);
                     if (messageObject.getDialogId() == dialogId && !messagesSearchEndReached[0]) {
-                        max_id = messageObject.getId();
+                        max_id = searchRawOffsetId[0] != 0 ? searchRawOffsetId[0] : messageObject.getId();
                         queryWithDialog = dialogId;
                     } else {
-                        if (messageObject.getDialogId() == mergeDialogId) {
+                        if (searchRawOffsetId[1] != 0) {
+                            max_id = searchRawOffsetId[1];
+                        } else if (messageObject.getDialogId() == mergeDialogId) {
                             max_id = messageObject.getId();
                         }
                         queryWithDialog = mergeDialogId;
@@ -4047,6 +4057,9 @@ public class MediaDataController extends BaseController {
         } else if (firstQuery) {
             messagesSearchEndReached[0] = messagesSearchEndReached[1] = false;
             messagesSearchCount[0] = messagesSearchCount[1] = 0;
+            searchHiddenCount[0] = searchHiddenCount[1] = 0;
+            searchRawOffsetId[0] = searchRawOffsetId[1] = 0;
+            searchSkippedPages = 0;
             searchResultMessages.clear();
             searchLocalResultMessages.clear();
             searchServerResultMessagesMap[0].clear();
@@ -4126,7 +4139,7 @@ public class MediaDataController extends BaseController {
         lastReaction = reaction;
         req.limit = 21;
         req.q = query != null ? query : "";
-        req.offset_id = max_id;
+        req.offset_id = max_id != 0 ? max_id : nextOffsetId;
         if (user != null) {
             req.from_id = MessagesController.getInputPeer(user);
             req.flags |= 1;
@@ -4219,19 +4232,38 @@ public class MediaDataController extends BaseController {
                                 searchServerResultMessagesMap[0].clear();
                                 searchServerResultMessagesMap[1].clear();
                                 messagesSearchCount[0] = 0;
+                                searchHiddenCount[0] = 0;
+                                searchRawOffsetId[0] = 0;
                                 getNotificationCenter().postNotificationName(NotificationCenter.chatSearchResultsLoading, guid);
                             }
+                            int index = queryWithDialogFinal == dialogId ? 0 : 1;
+                            boolean hideSenders = user == null && chat == null && AyuFilter.shouldHideSenders() && ChatObject.isMegagroup(getMessagesController().getChat(-dialogId));
                             boolean added = false;
+                            int hidden = 0;
                             int N = Math.min(res.messages.size(), req.limit - 1);
                             for (int a = 0; a < N; a++) {
-                                added = true;
                                 MessageObject messageObject = messageObjects.get(a);
+                                if (hideSenders) {
+                                    searchRawOffsetId[index] = messageObject.getId();
+                                    long fromId = messageObject.getFromChatId();
+                                    if (MessageHelper.getInstance(currentAccount).isBlockedUser(fromId) || AyuFilter.isBlockedChannel(fromId)) {
+                                        hidden++;
+                                        continue;
+                                    }
+                                }
+                                added = true;
                                 searchServerResultMessages.add(messageObject);
-                                searchServerResultMessagesMap[queryWithDialogFinal == dialogId ? 0 : 1].put(messageObject.getId(), messageObject);
+                                searchServerResultMessagesMap[index].put(messageObject.getId(), messageObject);
                             }
+                            searchHiddenCount[index] += hidden;
                             updateSearchResults();
-                            messagesSearchEndReached[queryWithDialogFinal == dialogId ? 0 : 1] = res.messages.size() < req.limit;
-                            messagesSearchCount[queryWithDialogFinal == dialogId ? 0 : 1] = res instanceof TLRPC.TL_messages_messagesSlice || res instanceof TLRPC.TL_messages_channelMessages ? res.count : res.messages.size();
+                            messagesSearchEndReached[index] = res.messages.size() < req.limit;
+                            messagesSearchCount[index] = (res instanceof TLRPC.TL_messages_messagesSlice || res instanceof TLRPC.TL_messages_channelMessages ? res.count : res.messages.size()) - searchHiddenCount[index];
+                            if (!added && hidden > 0 && !messagesSearchEndReached[index] && searchSkippedPages++ < 10) {
+                                searchNextOffsetId = searchRawOffsetId[index];
+                                searchMessagesInChat(lastSearchQuery, dialogId, mergeDialogId, guid, 0, replyMessageId, true, user, chat, jumpToMessage, lastReaction, lastSearchFilter);
+                                return;
+                            }
                             if (searchServerResultMessages.isEmpty()) {
                                 getNotificationCenter().postNotificationName(NotificationCenter.chatSearchResultsAvailable, guid, 0, getMask(), (long) 0, 0, 0, jumpToMessage);
                             } else {
