@@ -3911,6 +3911,16 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         return waitingForVote.get(key);
     }
 
+    private void markReadOnInteraction(int messageId, TLRPC.InputPeer peer) {
+        // --- Ghost Mode ---
+        if (messageId != 0 && NekoConfig.markReadAfterSend.Bool() && !NekoConfig.sendReadMessagePackets.Bool()) {
+            if (!AyuGhostPreferences.getGhostModeReadExclusion(AyuGhostUtils.getDialogId(peer))) {
+                AyuGhostUtils.markReadOnServer(messageId, peer, false);
+            }
+        }
+        // --- Ghost Mode ---
+    }
+
     public int sendVote(final MessageObject messageObject, final ArrayList<TLRPC.PollAnswer> answers, final Runnable finishRunnable) {
         if (messageObject == null) {
             return 0;
@@ -3935,6 +3945,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             options = new byte[0];
         }
         waitingForVote.put(key, options);
+        markReadOnInteraction(req.msg_id, req.peer);
         return getConnectionsManager().sendRequest(req, (response, error) -> {
             if (error == null) {
                 voteSendTime.put(messageObject.getPollId(), 0L);
@@ -4038,13 +4049,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             req.flags |= 2;
             req.big = true;
         }
-        // --- Ghost Mode ---
-        if (req.msg_id != 0 && NekoConfig.markReadAfterSend.Bool() && !NekoConfig.sendReadMessagePackets.Bool()) {
-            if (!AyuGhostPreferences.getGhostModeReadExclusion(AyuGhostUtils.getDialogId(req.peer))) {
-                AyuGhostUtils.markReadOnServer(req.msg_id, req.peer, false);
-            }
-        }
-        // --- Ghost Mode ---
+        markReadOnInteraction(req.msg_id, req.peer);
         getConnectionsManager().sendRequest(req, (response, error) -> {
             if (response != null) {
                 getMessagesController().processUpdates((TLRPC.Updates) response, false);

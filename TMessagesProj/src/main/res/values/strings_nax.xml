@@ -155,7 +155,7 @@
     <string name="SendOfflinePacketAfterOnline">Go Offline Automatically</string>
     <string name="MarkReadAfterSend">Read on Interact</string>
     <string name="GhostModeNotice">Long tap on any option to prevent it from changing on toggling Ghost Mode.</string>
-    <string name="MarkReadAfterSendNotice">Automatically reads message when you send a new one or tap a reaction.</string>
+    <string name="MarkReadAfterSendNotice">Automatically reads message when you send a new one, tap a reaction or vote in a poll.</string>
     <string name="SendWithoutSoundRowNotice">Automatically sends outgoing messages without sound.</string>
     <string name="GhostReadMessage">Read Message</string>
     <string name="GhostModeExcludeRead">Exclude Read</string>
