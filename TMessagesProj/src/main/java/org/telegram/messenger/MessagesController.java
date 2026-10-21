@@ -9541,6 +9541,9 @@ public class MessagesController extends BaseController implements NotificationCe
                 var userId = UserConfig.getInstance(currentAccount).clientUserId;
                 ArrayList<Integer> permittedForAyuDeletion = new ArrayList<>();
                 for (var msgId : messages) {
+                    if (!AyuState.isDeleteKept(dialogId, msgId) && !AyuState.isDeletePermitted(dialogId, msgId)) {
+                        AyuState.permitDeleteMessage(dialogId, msgId);
+                    }
                     if (AyuState.isDeletePermitted(dialogId, msgId)) {
                         permittedForAyuDeletion.add(msgId);
                     }
