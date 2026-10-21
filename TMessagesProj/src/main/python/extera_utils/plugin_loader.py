@@ -3546,6 +3546,36 @@ def start_dev_server() -> None:
     return None
 
 
+def _extract_native_assets() -> None:
+    try:
+        from java.android import importer
+        from pkgutil import get_importer
+        prefix = importer.ASSET_PREFIX
+    except Exception:
+        return
+    for entry in list(sys.path):
+        if not isinstance(entry, str) or not entry.startswith(prefix + os.sep):
+            continue
+        try:
+            finder = get_importer(entry)
+        except Exception:
+            continue
+        if not isinstance(finder, importer.AssetFinder) or finder.prefix:
+            continue
+        for zip_file in finder.zip_files:
+            for info in zip_file.infolist():
+                name = info.filename
+                if info.is_dir() or not name.endswith(".so") or name.startswith("debugpy/"):
+                    continue
+                try:
+                    zip_file.extract_if_changed(info, finder.extract_root)
+                except Exception as e:
+                    print(f"[exteraless:plugin_loader] extract {name} failed: {e}",
+                          file=sys.stderr)
+
+
+_extract_native_assets()
+
 # Песочницу ставим на импорте модуля: враппер builtins.__import__ должен
 # оказаться в цепочке ДО того, как elyx_runtime.namespace захватит себе
 # _ORIGINAL_IMPORT (elyx_runtime/namespace.py:53) — иначе импорты Elyx-плагинов
