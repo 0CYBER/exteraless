@@ -3805,7 +3805,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
 
             ByteBuffer[] encoderOutputBuffers = null;
             while (true) {
-                int encoderStatus = videoEncoder.dequeueOutputBuffer(videoBufferInfo, 10000);
+                int encoderStatus = videoEncoder.dequeueOutputBuffer(videoBufferInfo, endOfStream ? 10000 : 0);
                 if (encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
                     if (!endOfStream || pauseRecorder) {
                         break;
